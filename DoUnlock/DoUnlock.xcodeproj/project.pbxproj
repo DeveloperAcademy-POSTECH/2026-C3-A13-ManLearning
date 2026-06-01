@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = DoUnlock.app; path = "/Users/karl/Workspace/2026-C3-A13-ManLearning/DoUnlock/build/Debug-iphoneos/DoUnlock.app"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		90C014632FC97EBF0062A353 /* Exceptions for "DoUnlock" folder in "DoUnlock" target */ = {
+		CBCAAFE32FCD53B8008EB235 /* Exceptions for "DoUnlock" folder in "DoUnlock" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -21,10 +21,10 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		CBCAAF472FC8ABB9008EB235 /* DoUnlock */ = {
+		CBCAAFD12FCD53B7008EB235 /* DoUnlock */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				90C014632FC97EBF0062A353 /* Exceptions for "DoUnlock" folder in "DoUnlock" target */,
+				CBCAAFE32FCD53B8008EB235 /* Exceptions for "DoUnlock" folder in "DoUnlock" target */,
 			);
 			path = DoUnlock;
 			sourceTree = "<group>";
@@ -45,17 +45,8 @@
 		CBCAAF3C2FC8ABB8008EB235 = {
 			isa = PBXGroup;
 			children = (
-				CBCAAF472FC8ABB9008EB235 /* DoUnlock */,
-				CBCAAF462FC8ABB9008EB235 /* Products */,
+				CBCAAFD12FCD53B7008EB235 /* DoUnlock */,
 			);
-			sourceTree = "<group>";
-		};
-		CBCAAF462FC8ABB9008EB235 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -74,7 +65,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				CBCAAF472FC8ABB9008EB235 /* DoUnlock */,
+				CBCAAFD12FCD53B7008EB235 /* DoUnlock */,
 			);
 			name = DoUnlock;
 			packageProductDependencies = (
@@ -108,7 +99,7 @@
 			mainGroup = CBCAAF3C2FC8ABB8008EB235;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
-			productRefGroup = CBCAAF462FC8ABB9008EB235 /* Products */;
+			productRefGroup = CBCAAF3C2FC8ABB8008EB235;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (

@@ -6,24 +6,47 @@
 //
 
 import SwiftUI
+import AVFoundation
+import LocalAuthentication
 
 struct ContentView: View {
-    
-    var body: some View {
-        ZStack{
-            CameraPreviewView(
-                isActive: true, frameHandler:{ _ in}
-            ).ignoresSafeArea()
+    @State private var hasGrantedPermissions = false
 
+    var body: some View {
+        if hasGrantedPermissions {
+            ZStack {
+                CameraPreviewView(isActive: true, frameHandler: { _ in })
+                    .ignoresSafeArea()
+            }
+        } else {
+            PermissionSetupView {
+                requestPermissions()
+            }
         }
-        
-        
-        
+    }
+
+    private func requestPermissions() {
+        AVCaptureDevice.requestAccess(for: .video) { cameraGranted in
+            guard cameraGranted else { return }
+
+            let context = LAContext()
+            var error: NSError?
+            if context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) {
+                context.evaluatePolicy(
+                    .deviceOwnerAuthenticationWithBiometrics,
+                    localizedReason: "비밀번호를 본인에게만 보여주기 위해 필요해요"
+                ) { success, _ in
+                    if success {
+                        Task { @MainActor in hasGrantedPermissions = true }
+                    }
+                }
+            } else {
+                // Face ID를 사용할 수 없는 기기 (Touch ID, 패스코드 등)
+                Task { @MainActor in hasGrantedPermissions = true }
+            }
+        }
     }
 }
-        
-    
-
 
 #Preview {
     ContentView()
