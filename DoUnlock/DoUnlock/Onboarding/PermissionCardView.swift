@@ -19,13 +19,11 @@ struct PermissionCardView: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.cardTitle)
-                    .tracking(-0.375)
+                    .textStyle(.cardTitle)
                     .foregroundStyle(Color.headingText)
 
                 Text(subtitle)
-                    .font(.cardSubtitle)
-                    .tracking(-0.375)
+                    .textStyle(.cardSubtitle)
                     .foregroundStyle(Color.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }

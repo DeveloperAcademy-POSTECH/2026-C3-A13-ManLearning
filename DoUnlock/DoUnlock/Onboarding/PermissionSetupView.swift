@@ -36,8 +36,7 @@ struct PermissionSetupView: View {
                     }
 
                     Text("DoUnlock")
-                        .font(.brandName)
-                        .tracking(-0.5)
+                        .textStyle(.brandName)
                         .foregroundStyle(Color.black)
                 }
                 .padding(.top, 16)
@@ -48,14 +47,12 @@ struct PermissionSetupView: View {
                 // MARK: 제목 + 부제목
                 VStack(alignment: .leading, spacing: 16) {
                     Text("비밀번호를 확인")
-                        .font(.heading)
-                        .tracking(-0.5)
+                        .textStyle(.heading)
                         .foregroundStyle(Color.headingText)
 
                     Text("DoUnlock은 본인 인증을 통해 등록된 집 앞에서만\n도어락 비밀번호를 보여드려요.")
-                        .font(.bodyText)
+                        .textStyle(.bodyText)
                         .foregroundStyle(Color.secondaryText)
-                        .lineSpacing(7) // lineHeight 25 - fontSize 18 = 7
                 }
                 .padding(.horizontal, 16)
 
@@ -82,8 +79,7 @@ struct PermissionSetupView: View {
                 // MARK: CTA 버튼
                 Button(action: onRequestPermissions) {
                     Text("권한 허용하고 시작하기")
-                        .font(.button1)
-                        .tracking(-0.375)
+                        .textStyle(.button1)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 53)
