@@ -22,3 +22,6 @@ Package.resolved
 
 # Archives
 *.xcarchive
+
+# Claude Code
+CLAUDE.md

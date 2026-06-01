@@ -22,6 +22,8 @@ enum TextStyle {
     case bodyText       //                        — 본문 설명 (lineSpacing 포함)
     case cardTitle      //                        — 카드 주 제목
     case cardSubtitle   //                        — 카드 부제목
+    case introHeading   // Figma: ExtraBold 30   — 온보딩 인트로 제목
+    case introSubtitle  // Figma: Medium 20      — 온보딩 인트로 설명
 }
 
 // MARK: - ViewModifier
@@ -56,6 +58,15 @@ struct AppTextModifier: ViewModifier {
             content
                 .font(.cardSubtitle)
                 .tracking(-0.375)
+        case .introHeading:
+            content
+                .font(.introHeading)
+                .tracking(-0.5)
+        case .introSubtitle:
+            // lineHeight 1.5 × 20pt = 30pt → 추가 spacing 10
+            content
+                .font(.introSubtitle)
+                .lineSpacing(10)
         }
     }
 }

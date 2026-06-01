@@ -13,6 +13,8 @@ extension Font {
     static let heading      = Font.custom("Pretendard-Bold",     size: 30)
     static let button1      = Font.custom("Pretendard-SemiBold", size: 18)
     static let bodyText     = Font.custom("Pretendard-Regular",  size: 18)
-    static let cardTitle    = Font.custom("Pretendard-Bold",     size: 15)
-    static let cardSubtitle = Font.custom("Pretendard-SemiBold", size: 13)
+    static let cardTitle      = Font.custom("Pretendard-Bold",      size: 15)
+    static let cardSubtitle   = Font.custom("Pretendard-SemiBold",  size: 13)
+    static let introHeading   = Font.custom("Pretendard-ExtraBold", size: 30)
+    static let introSubtitle  = Font.custom("Pretendard-Medium",    size: 20)
 }

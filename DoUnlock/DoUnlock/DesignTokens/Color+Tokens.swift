@@ -12,6 +12,8 @@ extension Color {
     static let brandBlue        = Color(hex: 0x3E53FF)
     static let gradientStart    = Color(hex: 0x4D60F8)
     static let gradientEnd      = Color(hex: 0x2C3DD8)
+    static let progressInactive = Color(hex: 0xD9D9D9)
+    static let dimText          = Color(red: 68/255, green: 68/255, blue: 68/255, opacity: 0.5)
 
     private init(hex: UInt32, opacity: Double = 1) {
         self.init(

@@ -11,16 +11,21 @@ import LocalAuthentication
 
 struct ContentView: View {
     @State private var hasGrantedPermissions = false
+    @State private var hasSeenIntro = false
 
     var body: some View {
-        if hasGrantedPermissions {
+        if !hasGrantedPermissions {
+            PermissionSetupView {
+                requestPermissions()
+            }
+        } else if !hasSeenIntro {
+            OnboardingIntroView {
+                hasSeenIntro = true
+            }
+        } else {
             ZStack {
                 CameraPreviewView(isActive: true, frameHandler: { _ in })
                     .ignoresSafeArea()
-            }
-        } else {
-            PermissionSetupView {
-                requestPermissions()
             }
         }
     }
