@@ -4,5 +4,13 @@
 <dict>
 	<key>Privacy - Photo Library Usage Desciption</key>
 	<string></string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>비밀번호를 본인에게만 보여주기 위해 필요해요</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Pretendard-Bold.otf</string>
+		<string>Pretendard-SemiBold.otf</string>
+		<string>Pretendard-Regular.otf</string>
+	</array>
 </dict>
 </plist>
