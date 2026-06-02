@@ -8,17 +8,10 @@
 import SwiftUI
 
 struct ContentView: View {
-    
     var body: some View {
-        ZStack{
-            CameraPreviewView(
-                isActive: true, frameHandler:{ _ in}
-            ).ignoresSafeArea()
-
+        NavigationStack {
+            DoorLockRegistrationView()
         }
-        
-        
-        
     }
 }
         
