@@ -11,7 +11,7 @@ import LocalAuthentication
 
 struct ContentView: View {
     @State private var hasGrantedPermissions = false
-
+    @State private var cameraStatus: strokeColor = .defalut
     var body: some View {
         if !hasGrantedPermissions {
             PermissionSetupView {
@@ -22,7 +22,19 @@ struct ContentView: View {
             // Face ID 구현이 완료된 후에는 인증 결과에 따라 카메라 뷰로 전환하는 분기를 추가할 예정입니다.
             NavigationStack {
                 ZStack {
-                    CameraPreviewView(isActive: true, frameHandler: { _ in })
+                    CameraPreviewView(
+                        isActive: true,
+                        captureImageTrigger: false,
+                        pixelHandler: { pixelBuffer, cropRect in
+                            // 실시간 비교용
+                        },
+                        imageHandler: { image in
+                            // 캡처 이미지 처리용
+                        }
+                    )
+                    
+                        .ignoresSafeArea()
+                    CameraGuideOverlay(status: $cameraStatus)
                         .ignoresSafeArea()
 
                     // 테스트용 진입 버튼 — 추후 조건 로직으로 교체 예정
