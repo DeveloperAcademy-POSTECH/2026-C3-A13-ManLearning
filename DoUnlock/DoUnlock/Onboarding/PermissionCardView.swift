@@ -14,17 +14,17 @@ struct PermissionCardView: View {
         HStack(spacing: 14) {
             Image(systemName: systemImage)
                 .font(.system(size: 24, weight: .medium))
-                .foregroundStyle(Color.brandBlue)
+                .foregroundStyle(Color.brandPrimary)
                 .frame(width: 42, height: 43)
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .textStyle(.cardTitle)
-                    .foregroundStyle(Color.headingText)
+                    .foregroundStyle(Color.textPrimary)
 
                 Text(subtitle)
                     .textStyle(.cardSubtitle)
-                    .foregroundStyle(Color.secondaryText)
+                    .foregroundStyle(Color.textMuted)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -32,7 +32,7 @@ struct PermissionCardView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 20)
-        .background(Color.white)
+        .background(Color.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.04), radius: 4, x: 0, y: 1)
     }
@@ -52,5 +52,5 @@ struct PermissionCardView: View {
         )
     }
     .padding()
-    .background(Color.screenBackground)
+    .background(Color.screenBg)
 }

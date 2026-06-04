@@ -11,14 +11,14 @@ struct PermissionSetupView: View {
     // 143°(CSS 기준, 시계방향, 0°=하단) → SwiftUI UnitPoint 변환
     // startPoint ≈ (0.20, 0.90), endPoint ≈ (0.80, 0.10)
     private let iconGradient = LinearGradient(
-        colors: [Color.gradientStart, Color.gradientEnd],
+        colors: [Color.brandGradientStart, Color.brandGradientEnd],
         startPoint: UnitPoint(x: 0.20, y: 0.90),
         endPoint: UnitPoint(x: 0.80, y: 0.10)
     )
 
     var body: some View {
         ZStack {
-            Color.screenBackground
+            Color.screenBg
                 .ignoresSafeArea()
 
             VStack(alignment: .leading, spacing: 0) {
@@ -37,7 +37,7 @@ struct PermissionSetupView: View {
 
                     Text("DoUnlock")
                         .textStyle(.brandName)
-                        .foregroundStyle(Color.black)
+                        .foregroundStyle(Color.textPrimary)
                 }
                 .padding(.top, 16)
                 .padding(.horizontal, 16)
@@ -48,11 +48,11 @@ struct PermissionSetupView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("비밀번호를 확인")
                         .textStyle(.heading)
-                        .foregroundStyle(Color.headingText)
+                        .foregroundStyle(Color.textPrimary)
 
                     Text("DoUnlock은 본인 인증을 통해 등록된 집 앞에서만\n도어락 비밀번호를 보여드려요.")
                         .textStyle(.bodyText)
-                        .foregroundStyle(Color.secondaryText)
+                        .foregroundStyle(Color.textMuted)
                 }
                 .padding(.horizontal, 16)
 
@@ -79,11 +79,11 @@ struct PermissionSetupView: View {
                 // MARK: CTA 버튼
                 Button(action: onRequestPermissions) {
                     Text("권한 허용하고 시작하기")
-                        .textStyle(.button1)
+                        .textStyle(.buttonLarge)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 53)
-                        .background(Color.brandBlue)
+                        .background(Color.brandPrimary)
                         .clipShape(Capsule())
                 }
                 .padding(.horizontal, 16)
