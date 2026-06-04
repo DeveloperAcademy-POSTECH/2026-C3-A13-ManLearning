@@ -10,6 +10,7 @@ import AVFoundation
 import LocalAuthentication
 
 struct ContentView: View {
+
     @State private var hasGrantedPermissions = false
     @State private var cameraStatus: StrokeColor = .idle
     var body: some View {
