@@ -38,7 +38,7 @@ struct RegistrationCompleteView: View {
                 .fill(Color.brandPrimary)
                 .frame(width: 70, height: 70)
             Image(systemName: "checkmark")
-                .foregroundColor(.white)
+                .foregroundStyle(.white)
                 .font(.system(size: 24, weight: .bold))
         }
     }
@@ -48,12 +48,12 @@ struct RegistrationCompleteView: View {
             VStack(spacing: 12) {
                 Text("도어락 등록 완료")
                     .textStyle(.heading)
-                    .foregroundColor(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)
 
                 Text("이제 집 앞에서 카메라를 비추면 비밀번호를 안전하게\n확인할수 있어요")
                     .textStyle(.subHeading)
-                    .foregroundColor(.textMuted)
+                    .foregroundStyle(Color.textMuted)
                     .multilineTextAlignment(.center)
             }
 
@@ -74,24 +74,24 @@ struct RegistrationCompleteView: View {
                 .frame(width: 44, height: 55)
                 .overlay(
                     Image(systemName: "lock.fill")
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .font(.system(size: 15))
                 )
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("우리집")
                     .textStyle(.cardTitle)
-                    .foregroundColor(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                 Text("1203호 · 현관문 오른쪽 도어락")
                     .textStyle(.cardSubtitle)
-                    .foregroundColor(.textMuted)
+                    .foregroundStyle(Color.textMuted)
             }
 
             Spacer()
 
             Text("등록됨")
                 .textStyle(.badge)
-                .foregroundColor(.successFg)
+                .foregroundStyle(Color.successFg)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(Color.successBg)
@@ -109,7 +109,7 @@ struct RegistrationCompleteView: View {
             } label: {
                 Text("등록된 목록 확인하기")
                     .textStyle(.buttonLarge)
-                    .foregroundColor(.brandPrimary)
+                    .foregroundStyle(Color.brandPrimary)
                     .frame(maxWidth: .infinity)
                     .frame(height: 53)
                     .background(Color.brandPrimaryTint)
@@ -121,7 +121,7 @@ struct RegistrationCompleteView: View {
             } label: {
                 Text("바로 인식해보기")
                     .textStyle(.buttonLarge)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 53)
                     .background(Color.brandPrimary)

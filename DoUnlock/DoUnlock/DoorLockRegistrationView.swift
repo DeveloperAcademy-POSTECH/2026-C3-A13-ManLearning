@@ -20,7 +20,7 @@ struct DoorLockRegistrationView: View {
                 
                 Text("도어락 정보 등록")
                     .textStyle(.heading)
-                    .foregroundColor(.textPrimary)
+                    .foregroundStyle(Color.textPrimary)
                     .padding(.horizontal, 16)
                     .padding(.top, 28)
                 
@@ -43,7 +43,7 @@ struct DoorLockRegistrationView: View {
             NavigationLink(destination: RegistrationCompleteView()) {
                 Text("등록 완료하기")
                     .textStyle(.button)
-                    .foregroundColor(.white)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 53)
                     .background(Color.brandPrimary)
@@ -77,7 +77,7 @@ struct DoorLockRegistrationView: View {
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.borderDefault, lineWidth: 1.5)
                 Image(systemName: "camera.fill")
-                    .foregroundColor(.textPlaceholder)
+                    .foregroundStyle(Color.textPlaceholder)
                     .font(.system(size: 28))
             }
             .frame(width: 174, height: 202)
@@ -89,7 +89,7 @@ struct DoorLockRegistrationView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("카테고리")
                 .textStyle(.fieldLabel)
-                .foregroundColor(.textSecondary)
+                .foregroundStyle(Color.textSecondary)
             
             Menu {
                 ForEach(categories, id: \.self) { cat in
@@ -99,10 +99,10 @@ struct DoorLockRegistrationView: View {
                 HStack {
                     Text(category)
                         .textStyle(.fieldValue)
-                        .foregroundColor(.textPrimary)
+                        .foregroundStyle(Color.textPrimary)
                     Spacer()
                     Image(systemName: "chevron.down")
-                        .foregroundColor(.textPrimary)
+                        .foregroundStyle(Color.textPrimary)
                         .font(.system(size: 12, weight: .medium))
                 }
                 .padding(.horizontal, 16)
@@ -121,7 +121,7 @@ struct DoorLockRegistrationView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("이름")
                 .textStyle(.fieldLabel)
-                .foregroundColor(.textSecondary)
+                .foregroundStyle(Color.textSecondary)
             
             TextField("아카데미 사물함", text: $name)
                 .textStyle(.fieldValue)
@@ -140,7 +140,7 @@ struct DoorLockRegistrationView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text("비밀번호")
                 .textStyle(.fieldLabel)
-                .foregroundColor(.textSecondary)
+                .foregroundStyle(Color.textSecondary)
             
             SecureField("1234", text: $password)
                 .textStyle(.fieldValue)
@@ -158,13 +158,13 @@ struct DoorLockRegistrationView: View {
     private var infoNotice: some View {
         HStack(alignment: .center, spacing: 16) {
             Image(systemName: "lock")
-                .foregroundColor(.infoFg)
+                .foregroundStyle(Color.infoFg)
                 .font(.system(size: 18))
                 .frame(width: 14)
             
             Text("비밀번호는 안전하게 암호화되어 저장되며, \n본인 인증 후에만 표시돼요.")
                 .textStyle(.caption)
-                .foregroundColor(.infoFg)
+                .foregroundStyle(Color.infoFg)
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -189,7 +189,7 @@ struct DoorLockRegistrationView: View {
                 .shadow(color: .black.opacity(0.08), radius: 1.5, x: 0, y: 1)
                 .overlay(Circle().stroke(Color.borderDefault, lineWidth: 1))
             content()
-                .foregroundColor(.textPrimary)
+                .foregroundStyle(Color.textPrimary)
         }
         .frame(width: 40, height: 40)
     }
