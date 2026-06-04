@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-enum strokeColor {
-    case defalut
+enum StrokeColor {
+    case idle
     case error
     case pass
     
-    var Color: Color {
+    var color: Color {
         switch self {
-        case .defalut: return .white
+        case .idle: return .white
         case .error: return .red
         case .pass: return .green
         }
@@ -25,12 +25,12 @@ enum strokeColor {
 struct CameraGuideOverlay: View {
     let widthRatio: CGFloat = 0.63
     let heightRatio: CGFloat = 0.45
-    @Binding var status : strokeColor
+    @Binding var status : StrokeColor
 
     var body: some View {
         GeometryReader { geometry in
             Rectangle()
-                .stroke(status.Color, lineWidth: 4)
+                .stroke(status.color, lineWidth: 4)
                 .frame(
                     width: geometry.size.width * widthRatio,
                     height: geometry.size.height * heightRatio
@@ -45,5 +45,5 @@ struct CameraGuideOverlay: View {
 }
 
 #Preview {
-    CameraGuideOverlay(status: .constant(.defalut))
+    CameraGuideOverlay(status: .constant(.idle))
 }
