@@ -9,10 +9,14 @@
 import SwiftUI
 import UIKit
 
+
+
 struct CameraPreviewView: UIViewRepresentable {
     
     let isActive: Bool    // true이면 라이브 프리뷰 세션을 실행, false이면 카메라 장치 점유를 해제
-    let frameHandler: (CVPixelBuffer) -> Void     // 각 비디오 프레임을 밖으로 callback
+    let captureImageTrigger: Bool
+    let pixelHandler: (CVPixelBuffer, CGRect) -> Void
+    let imageHandler: (UIImage) -> Void
 
 
     func makeUIView(context: Context) -> PreviewView {
@@ -20,15 +24,21 @@ struct CameraPreviewView: UIViewRepresentable {
         let view = PreviewView()
         context.coordinator.configureSession(
             for: view,
-            frameHandler: frameHandler,
+            captureImageTrigger: captureImageTrigger,
+            pixelHandler: pixelHandler,
+            imageHandler: imageHandler,
             isActive: isActive
         )
         return view
     }
 
     func updateUIView(_ uiView: PreviewView, context: Context) {
-        // SwiftUI 상태 변화에 맞춰 카메라 세션을 시작하거나 멈춥니다.
-        context.coordinator.setActive(isActive)
+        context.coordinator.update(
+            isActive: isActive,
+            captureImageTrigger: captureImageTrigger,
+            pixelHandler: pixelHandler,
+            imageHandler: imageHandler
+        )
     }
 
     func makeCoordinator() -> CameraCoordinator {
@@ -44,20 +54,62 @@ struct CameraPreviewView: UIViewRepresentable {
 }
 
 // MARK
+
 final class PreviewView: UIView {
-    // 카메라 영상을 실제로 화면에 보여주는 UIKit view
+    var cropWidthRatio: CGFloat = 0.63
+    var cropHeightRatio: CGFloat = 0.45
+    var normalizedCropRectHandler: ((CGRect) -> Void)?
+
     override class var layerClass: AnyClass {
         AVCaptureVideoPreviewLayer.self
     }
 
-    // preview layer 접근을 단순하게 만듭니다.
     var previewLayer: AVCaptureVideoPreviewLayer {
         layer as! AVCaptureVideoPreviewLayer
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateNormalizedCropRect()
+    }
+
+    private func updateNormalizedCropRect() {
+        let bounds = previewLayer.bounds
+        guard bounds.isEmpty == false else { return }
+
+        let guideWidth = bounds.width * cropWidthRatio
+        let guideHeight = bounds.height * cropHeightRatio
+
+        let guideRect = CGRect(
+            x: bounds.midX - guideWidth / 2,
+            y: bounds.midY - guideHeight / 2,
+            width: guideWidth,
+            height: guideHeight
+        )
+
+        let normalizedRect = previewLayer.metadataOutputRectConverted(
+            fromLayerRect: guideRect
+        )
+
+        normalizedCropRectHandler?(normalizedRect)
     }
 }
 
 
 final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+    
+    private var pixelHandler: ((CVPixelBuffer, CGRect) -> Void)?
+    private var imageHandler: ((UIImage) -> Void)?
+    private var normalizedGuideRect: CGRect?
+
+
+
+    private let cropWidthRatio: CGFloat = 0.63 //카메라 가로 대비 객체 인식 비율
+    private let cropHeightRatio: CGFloat = 0.45  //카메라 세로 대비 객체 인식 비율
+
+    private var shouldCaptureImage = false
+    private var lastCaptureImageTrigger = false
+    
     // 라이브 카메라 입력/출력을 묶는 capture session입니다.
     private let session = AVCaptureSession()
 
@@ -76,27 +128,59 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     // 세션 input/output 구성은 한 번만 하고, 이후에는 start/stop만 반복합니다.
     private var isConfigured = false
 
+    
+    private func updateNormalizedGuideRect(_ rect: CGRect) {
+        videoQueue.async {
+            self.normalizedGuideRect = rect
+        }
+    }
+    
     func configureSession(
         for view: PreviewView,
-        frameHandler: @escaping (CVPixelBuffer) -> Void,
+        captureImageTrigger: Bool,
+        pixelHandler: @escaping (CVPixelBuffer, CGRect) -> Void,
+        imageHandler: @escaping (UIImage) -> Void,
         isActive: Bool
     ) {
-        self.frameHandler = frameHandler
         self.isActive = isActive
+        self.lastCaptureImageTrigger = captureImageTrigger
+        self.pixelHandler = pixelHandler
+        self.imageHandler = imageHandler
+
+        view.cropWidthRatio = cropWidthRatio
+        view.cropHeightRatio = cropHeightRatio
+        view.normalizedCropRectHandler = { [weak self] rect in
+            self?.updateNormalizedGuideRect(rect)
+        }
+        
         view.previewLayer.session = session
         view.previewLayer.videoGravity = .resizeAspectFill
+        
 
         sessionQueue.async {
             self.requestAccessIfNeeded()
         }
     }
 
-    func setActive(_ newValue: Bool) {
-        sessionQueue.async {
-            guard self.isActive != newValue else { return }
-            self.isActive = newValue
+    func update(
+        isActive: Bool,
+        captureImageTrigger: Bool,
+        pixelHandler: @escaping (CVPixelBuffer, CGRect) -> Void,
+        imageHandler: @escaping (UIImage) -> Void
+    ) {
+        self.pixelHandler = pixelHandler
+        self.imageHandler = imageHandler
 
-            if newValue {
+        if captureImageTrigger != lastCaptureImageTrigger {
+            shouldCaptureImage = true
+            lastCaptureImageTrigger = captureImageTrigger
+        }
+
+        sessionQueue.async {
+            guard self.isActive != isActive else { return }
+            self.isActive = isActive
+
+            if isActive {
                 self.requestAccessIfNeeded()
             } else {
                 self.stopSession()
@@ -141,7 +225,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
 
     private func configureSessionInputsAndOutputs() {
         session.beginConfiguration()
-        session.sessionPreset = .medium
+        session.sessionPreset = .high
 
         // 재구성 시 기존 input/output을 지우고 현재 후면 카메라 + 비디오 프레임 output만 붙입니다.
         session.inputs.forEach { session.removeInput($0) }
@@ -189,6 +273,25 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         }
     }
 
+    
+    private func makeCroppedImage(
+        // 이미지 전송이 필요할 경우
+        
+        from pixelBuffer: CVPixelBuffer,
+        cropRect: CGRect
+    ) -> UIImage? {
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let croppedImage = ciImage.cropped(to: cropRect)
+
+        let context = CIContext()
+
+        guard let cgImage = context.createCGImage(croppedImage, from: cropRect) else {
+            return nil
+        }
+
+        return UIImage(cgImage: cgImage)
+    }
+    
     func captureOutput(
         _ output: AVCaptureOutput,
         didOutput sampleBuffer: CMSampleBuffer,
@@ -196,6 +299,28 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     ) {
         // 비디오 프레임에서 pixel buffer를 꺼내 실시간 유사도 계산 쪽으로 넘깁니다.
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        frameHandler?(pixelBuffer)
+        
+        guard let normalizedRect = normalizedGuideRect else { return }
+
+        let pixelWidth = CGFloat(CVPixelBufferGetWidth(pixelBuffer))
+        let pixelHeight = CGFloat(CVPixelBufferGetHeight(pixelBuffer))
+
+        let cropRect = CGRect(
+            x: normalizedRect.minX * pixelWidth,
+            y: normalizedRect.minY * pixelHeight,
+            width: normalizedRect.width * pixelWidth,
+            height: normalizedRect.height * pixelHeight
+        ).integral
+
+
+        pixelHandler?(pixelBuffer, cropRect)
+
+        if shouldCaptureImage {
+            shouldCaptureImage = false
+
+            if let image = makeCroppedImage(from: pixelBuffer, cropRect: cropRect) {
+                imageHandler?(image)
+            }
+        }
     }
 }
