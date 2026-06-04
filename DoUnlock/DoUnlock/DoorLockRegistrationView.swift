@@ -5,41 +5,41 @@ struct DoorLockRegistrationView: View {
     @State private var name = ""
     @State private var password = ""
     @Environment(\.dismiss) private var dismiss
-
-    private let categories = ["도어락", "사물함", "현관문", "기타"]
-
+    
+    private let categories = ["도어락", "자전거", "캐리어", "기타"]
+    
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.screenBg.ignoresSafeArea()
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    navBar
-                        .padding(.horizontal, 14)
-                        .padding(.top, 8)
-
-                    Text("도어락 정보 등록")
-                        .textStyle(.heading)
-                        .foregroundColor(.textPrimary)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 28)
-
-                    VStack(alignment: .leading, spacing: 16) {
-                        imagePlaceholder
-                        categoryField
-                        nameField
-                        passwordField
-                    }
+            
+            
+            VStack(alignment: .leading, spacing: 0) {
+                navBar
+                    .padding(.horizontal, 14)
+                    .padding(.top, 8)
+                
+                Text("도어락 정보 등록")
+                    .textStyle(.heading)
+                    .foregroundColor(.textPrimary)
                     .padding(.horizontal, 16)
-                    .padding(.top, 36)
-
-                    infoNotice
-                        .padding(.horizontal, 16)
-                        .padding(.top, 28)
-                        .padding(.bottom, 100)
+                    .padding(.top, 28)
+                
+                VStack(alignment: .leading, spacing: 16) {
+                    imagePlaceholder
+                    categoryField
+                    nameField
+                    passwordField
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 36)
+                
+                infoNotice
+                    .padding(.horizontal, 16)
+                    .padding(.top, 28)
+                    .padding(.bottom, 100)
             }
-
+            
+            
             NavigationLink(destination: RegistrationCompleteView()) {
                 Text("등록 완료하기")
                     .textStyle(.button)
@@ -50,13 +50,12 @@ struct DoorLockRegistrationView: View {
                     .clipShape(Capsule())
             }
             .padding(.horizontal, 16)
-            .padding(.bottom, 34)
         }
         .navigationBarHidden(true)
     }
-
+    
     // MARK: - Sub views
-
+    
     private var navBar: some View {
         HStack {
             Button { dismiss() } label: {
@@ -68,7 +67,7 @@ struct DoorLockRegistrationView: View {
             }
         }
     }
-
+    
     private var imagePlaceholder: some View {
         HStack {
             Spacer()
@@ -85,13 +84,13 @@ struct DoorLockRegistrationView: View {
             Spacer()
         }
     }
-
+    
     private var categoryField: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("카테고리")
                 .textStyle(.fieldLabel)
                 .foregroundColor(.textSecondary)
-
+            
             Menu {
                 ForEach(categories, id: \.self) { cat in
                     Button(cat) { category = cat }
@@ -117,13 +116,13 @@ struct DoorLockRegistrationView: View {
             }
         }
     }
-
+    
     private var nameField: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("이름")
                 .textStyle(.fieldLabel)
                 .foregroundColor(.textSecondary)
-
+            
             TextField("아카데미 사물함", text: $name)
                 .textStyle(.fieldValue)
                 .padding(.horizontal, 16)
@@ -136,13 +135,13 @@ struct DoorLockRegistrationView: View {
                 )
         }
     }
-
+    
     private var passwordField: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("비밀번호")
                 .textStyle(.fieldLabel)
                 .foregroundColor(.textSecondary)
-
+            
             SecureField("1234", text: $password)
                 .textStyle(.fieldValue)
                 .padding(.horizontal, 16)
@@ -155,21 +154,23 @@ struct DoorLockRegistrationView: View {
                 )
         }
     }
-
+    
     private var infoNotice: some View {
-        HStack(alignment: .top, spacing: 16) {
+        HStack(alignment: .center, spacing: 16) {
             Image(systemName: "lock")
                 .foregroundColor(.infoFg)
-                .font(.system(size: 14))
+                .font(.system(size: 18))
                 .frame(width: 14)
-
-            Text("비밀번호는 안전하게 암호화되어 저장되며, 본인 인증 후에만 표시돼요.")
+            
+            Text("비밀번호는 안전하게 암호화되어 저장되며, \n본인 인증 후에만 표시돼요.")
                 .textStyle(.caption)
                 .foregroundColor(.infoFg)
                 .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.infoBg)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
@@ -177,9 +178,9 @@ struct DoorLockRegistrationView: View {
                 .stroke(Color.infoBorder, lineWidth: 1)
         )
     }
-
+    
     // MARK: - Helpers
-
+    
     @ViewBuilder
     private func circleNavButton<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         ZStack {
