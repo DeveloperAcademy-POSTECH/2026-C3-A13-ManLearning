@@ -1,29 +1,61 @@
 import SwiftUI
 
 struct DoorLockRegistrationView: View {
-    @State private var category = "도어락"
-    @State private var name = ""
-    @State private var password = ""
+    /// 등록(create) / 수정(edit) 겸용. 기본값 `.create`라 기존 `DoorLockRegistrationView()` 호출부는 그대로 동작.
+    enum Mode {
+        case create
+        case edit(DoorLockDraft)
+    }
+
+    let mode: Mode
+    /// 수정 저장 콜백. SwiftData 머지 전 인메모리 목록 갱신용 (자세한 내용은 DoorLock/INTEGRATION.md).
+    var onSave: ((DoorLockDraft) -> Void)?
+
+    @State private var category: String
+    @State private var name: String
+    @State private var password: String
     @Environment(\.dismiss) private var dismiss
-    
+
     private let categories = ["도어락", "자전거", "캐리어", "기타"]
-    
+
+    init(mode: Mode = .create, onSave: ((DoorLockDraft) -> Void)? = nil) {
+        self.mode = mode
+        self.onSave = onSave
+        switch mode {
+        case .create:
+            _category = State(initialValue: "도어락")
+            _name = State(initialValue: "")
+            _password = State(initialValue: "")
+        case .edit(let lock):
+            _category = State(initialValue: lock.category)
+            _name = State(initialValue: lock.name)
+            _password = State(initialValue: lock.password)
+        }
+    }
+
+    private var title: String {
+        switch mode {
+        case .create: return "도어락 정보 등록"
+        case .edit:   return "도어락 정보 수정"
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.screenBg.ignoresSafeArea()
-            
-            
+
+
             VStack(alignment: .leading, spacing: 0) {
                 navBar
                     .padding(.horizontal, 14)
                     .padding(.top, 8)
-                
-                Text("도어락 정보 등록")
+
+                Text(title)
                     .textStyle(.heading)
                     .foregroundStyle(Color.textPrimary)
                     .padding(.horizontal, 16)
                     .padding(.top, 28)
-                
+
                 VStack(alignment: .leading, spacing: 16) {
                     imagePlaceholder
                     categoryField
@@ -32,29 +64,48 @@ struct DoorLockRegistrationView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 36)
-                
+
                 infoNotice
                     .padding(.horizontal, 16)
                     .padding(.top, 28)
                     .padding(.bottom, 100)
             }
-            
-            
-            NavigationLink(destination: RegistrationCompleteView()) {
-                Text("등록 완료하기")
-                    .textStyle(.button)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 53)
-                    .background(Color.brandPrimary)
-                    .clipShape(Capsule())
-            }
-            .padding(.horizontal, 16)
+
+
+            bottomButton
+                .padding(.horizontal, 16)
         }
         .navigationBarHidden(true)
     }
-    
+
     // MARK: - Sub views
+
+    @ViewBuilder
+    private var bottomButton: some View {
+        switch mode {
+        case .create:
+            NavigationLink(destination: RegistrationCompleteView()) {
+                bottomButtonLabel("등록 완료하기")
+            }
+        case .edit:
+            Button {
+                save()
+                dismiss()
+            } label: {
+                bottomButtonLabel("수정하기")
+            }
+        }
+    }
+
+    private func bottomButtonLabel(_ text: String) -> some View {
+        Text(text)
+            .textStyle(.button)
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 53)
+            .background(Color.brandPrimary)
+            .clipShape(Capsule())
+    }
     
     private var navBar: some View {
         HStack {
@@ -180,7 +231,18 @@ struct DoorLockRegistrationView: View {
     }
     
     // MARK: - Helpers
-    
+
+    /// 수정 모드 저장. 원본의 id/createAt/image는 보존하고 입력값만 갱신, updateAt은 현재로.
+    private func save() {
+        guard case .edit(let lock) = mode else { return }
+        var updated = lock
+        updated.category = category
+        updated.name = name
+        updated.password = password
+        updated.updateAt = .now
+        onSave?(updated)
+    }
+
     @ViewBuilder
     private func circleNavButton<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         ZStack {

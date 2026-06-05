@@ -45,6 +45,10 @@ extension Color {
     static let lockIconStart     = Color(hex: 0x12122A)
     static let lockIconEnd       = Color(hex: 0x1A1838)
 
+    // MARK: - Door lock card thumbnail (사진 없을 때 placeholder)
+    static let lockBadgeBg       = Color(hex: 0x161530)   // 배경
+    static let lockBadgeIcon     = Color(hex: 0x6B7BF7)   // 자물쇠 글리프
+
     // MARK: - hex initializer
     private init(hex: UInt32, opacity: Double = 1) {
         self.init(
