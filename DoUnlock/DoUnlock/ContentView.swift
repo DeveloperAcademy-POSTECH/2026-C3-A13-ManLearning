@@ -11,7 +11,7 @@ import LocalAuthentication
 
 struct ContentView: View {
     @State private var hasGrantedPermissions = false
-    @State private var hasSeenIntro = false
+    @State private var onboardingStep = 0
     @State private var cameraStatus: StrokeColor = .idle
 
     var body: some View {
@@ -19,9 +19,13 @@ struct ContentView: View {
             PermissionSetupView {
                 requestPermissions()
             }
-        } else if !hasSeenIntro {
-            OnboardingIntroView {
-                hasSeenIntro = true
+        } else if onboardingStep < OnboardingPage.all.count {
+            OnboardingPageView(
+                page: OnboardingPage.all[onboardingStep],
+                currentStep: onboardingStep,
+                totalSteps: OnboardingPage.all.count
+            ) {
+                onboardingStep += 1
             }
         } else {
             ZStack {
