@@ -1,9 +1,14 @@
 import SwiftUI
+import SwiftData
 
 struct DoorLockRegistrationView: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var category = "도어락"
     @State private var name = ""
     @State private var password = ""
+    @State private var isRegistrationComplete = false
+    let imageData: Data
+    
     @Environment(\.dismiss) private var dismiss
     
     private let categories = ["도어락", "자전거", "캐리어", "기타"]
@@ -39,8 +44,10 @@ struct DoorLockRegistrationView: View {
                     .padding(.bottom, 100)
             }
             
-            
-            NavigationLink(destination: RegistrationCompleteView()) {
+            Button {
+                saveDoorLock()
+                isRegistrationComplete = true
+            } label: {
                 Text("등록 완료하기")
                     .textStyle(.button)
                     .foregroundStyle(.white)
@@ -48,6 +55,9 @@ struct DoorLockRegistrationView: View {
                     .frame(height: 53)
                     .background(Color.brandPrimary)
                     .clipShape(Capsule())
+            }
+            .navigationDestination(isPresented: $isRegistrationComplete) {
+                RegistrationCompleteView(name: name, category: category, imageData: imageData)
             }
             .padding(.horizontal, 16)
         }
@@ -61,10 +71,7 @@ struct DoorLockRegistrationView: View {
             Button { dismiss() } label: {
                 circleNavButton { Image(systemName: "chevron.left") }
             }
-            Spacer()
-            Button { } label: {
-                circleNavButton { Image(systemName: "square.and.arrow.up") }
-            }
+
         }
     }
     
@@ -72,14 +79,22 @@ struct DoorLockRegistrationView: View {
         HStack {
             Spacer()
             ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.surface)
+                if let uiImage = UIImage(data: imageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Color.surface
+                    Image(systemName: "camera.fill")
+                        .foregroundStyle(Color.textPlaceholder)
+                        .font(.system(size: 28))
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.borderDefault, lineWidth: 1.5)
-                Image(systemName: "camera.fill")
-                    .foregroundStyle(Color.textPlaceholder)
-                    .font(.system(size: 28))
-            }
+            )
             .frame(width: 174, height: 202)
             Spacer()
         }
@@ -179,6 +194,17 @@ struct DoorLockRegistrationView: View {
         )
     }
     
+    private func saveDoorLock()
+    {
+        let newDoorLock = DoorLock(
+            category :category,
+            name: name,
+            password: password,
+            image: imageData
+        )
+        modelContext.insert(newDoorLock)
+    }
+    
     // MARK: - Helpers
     
     @ViewBuilder
@@ -197,6 +223,8 @@ struct DoorLockRegistrationView: View {
 
 #Preview {
     NavigationStack {
-        DoorLockRegistrationView()
+        DoorLockRegistrationView(
+            imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!
+        )
     }
 }

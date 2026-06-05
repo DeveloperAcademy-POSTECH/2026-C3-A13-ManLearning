@@ -30,7 +30,7 @@ struct CameraGuideOverlay: View {
     var body: some View {
         GeometryReader { geometry in
             Rectangle()
-                .stroke(status.color, lineWidth: 4)
+                .stroke(status.color, lineWidth: 3)
                 .frame(
                     width: geometry.size.width * widthRatio,
                     height: geometry.size.height * heightRatio
@@ -40,7 +40,7 @@ struct CameraGuideOverlay: View {
                     y: geometry.size.height / 2
                 )
         }
-        .allowsHitTesting(false)
+        .allowsHitTesting(false) //터치를 완전히 무시
     }
 }
 
