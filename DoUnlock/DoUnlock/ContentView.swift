@@ -10,46 +10,39 @@ import AVFoundation
 import LocalAuthentication
 
 struct ContentView: View {
-
     @State private var hasGrantedPermissions = false
+    @State private var onboardingStep = 0
     @State private var cameraStatus: StrokeColor = .idle
+
     var body: some View {
         if !hasGrantedPermissions {
             PermissionSetupView {
                 requestPermissions()
             }
+        } else if onboardingStep < OnboardingPage.all.count {
+            OnboardingPageView(
+                page: OnboardingPage.all[onboardingStep],
+                currentStep: onboardingStep,
+                totalSteps: OnboardingPage.all.count
+            ) {
+                onboardingStep += 1
+            }
         } else {
-            // FaceIDView 테스트를 위한 NavigationStack입니다.
-            // Face ID 구현이 완료된 후에는 인증 결과에 따라 카메라 뷰로 전환하는 분기를 추가할 예정입니다.
-            NavigationStack {
-                ZStack {
-                    CameraPreviewView(
-                        isActive: true,
-                        captureImageTrigger: false,
-                        pixelHandler: { pixelBuffer, cropRect in
-                            // 실시간 비교용
-                        },
-                        imageHandler: { image in
-                            // 캡처 이미지 처리용
-                        }
-                    )
-                    
-                        .ignoresSafeArea()
-                    CameraGuideOverlay(status: $cameraStatus)
-                        .ignoresSafeArea()
-
-                    // 테스트용 진입 버튼 — 추후 조건 로직으로 교체 예정
-                    VStack {
-                        Spacer()
-                        NavigationLink("Face ID 테스트") {
-                            FaceIDView()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .padding(.bottom, 48)
+            ZStack {
+                CameraPreviewView(
+                    isActive: true,
+                    captureImageTrigger: false,
+                    pixelHandler: { pixelBuffer, cropRect in
+                        // 실시간 비교용
+                    },
+                    imageHandler: { image in
+                        // 캡처 이미지 처리용
                     }
-                }
-                .navigationTitle("DoUnlock")
-                .navigationBarTitleDisplayMode(.inline)
+                )
+                .ignoresSafeArea()
+
+                CameraGuideOverlay(status: $cameraStatus)
+                    .ignoresSafeArea()
             }
         }
     }

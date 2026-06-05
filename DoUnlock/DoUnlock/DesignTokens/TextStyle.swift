@@ -18,8 +18,10 @@ import SwiftUI
 
 enum TextStyle {
     case heading        // 페이지 대제목
+    case displayTitle   // 온보딩 대형 타이틀 (ExtraBold 30)
     case brandName      // 앱 로고 옆 이름
     case subHeading     // 부제목 / 안내 본문 (lineSpacing 포함)
+    case leadBody       // 리드 본문 (Medium 20, lineSpacing 포함)
     case bodyText       // 본문 설명 (lineSpacing 포함)
     case cardTitle      // 카드 주 제목
     case cardSubtitle   // 카드 부제목
@@ -40,10 +42,15 @@ struct AppTextModifier: ViewModifier {
         switch style {
         case .heading:
             content.font(.heading).tracking(-0.5)
+        case .displayTitle:
+            content.font(.displayTitle).tracking(-0.5)
         case .brandName:
             content.font(.brandName).tracking(-0.5)
         case .subHeading:
             content.font(.subHeading).lineSpacing(8)
+        case .leadBody:
+            // lineHeight 1.5 × 20pt = 30pt → 추가 spacing 10
+            content.font(.leadBody).lineSpacing(10)
         case .bodyText:
             // lineHeight 25 - fontSize 18 = lineSpacing 7
             content.font(.bodyText).lineSpacing(7)

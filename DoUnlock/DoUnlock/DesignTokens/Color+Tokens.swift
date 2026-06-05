@@ -29,6 +29,9 @@ extension Color {
     // MARK: - Border / Divider
     static let borderDefault     = Color(hex: 0xE5E7EB)
 
+    // MARK: - Progress
+    static let progressTrack     = Color(hex: 0xD9D9D9)   // 진행바 비활성 트랙
+
     // MARK: - Info notice
     static let infoBg            = Color(hex: 0xEEF0FF)
     static let infoBorder        = Color(hex: 0xD1D9FA)
