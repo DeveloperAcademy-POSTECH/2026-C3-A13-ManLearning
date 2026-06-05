@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct CapturedImageReviewView: View {
+    @State private var goToRegistration = false
+
     let image: UIImage
 
     private let focusWidthRatio: CGFloat = 0.63
@@ -85,6 +87,7 @@ struct CapturedImageReviewView: View {
                         .padding(.bottom, 10)
                         
                         Button {
+                            goToRegistration = true
                         } label: {
                             Text("비밀번호 등록하러 가기")
                                 .font(Font.button)
@@ -94,7 +97,11 @@ struct CapturedImageReviewView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(59)
                         }
-
+                        .navigationDestination(isPresented: $goToRegistration) {
+                            DoorLockRegistrationView(
+                                imageData: image.jpegData(compressionQuality: 0.8)!
+                            )
+                        }
                         
                     }
                     .padding(.horizontal, 15)
@@ -108,5 +115,7 @@ struct CapturedImageReviewView: View {
 }
 
 #Preview {
-    CapturedImageReviewView(image: UIImage(named: "photo")!)
+    NavigationStack{
+        CapturedImageReviewView(image: UIImage(named: "photo")!)
+    }
 }
