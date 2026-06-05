@@ -108,6 +108,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     private let cropHeightRatio: CGFloat = 0.45  //카메라 세로 대비 객체 인식 비율
 
     private var shouldCaptureImage = false
+    private var shouldCaptureFullImage = false
     private var lastCaptureImageTrigger = false
     
     // 라이브 카메라 입력/출력을 묶는 capture session입니다.
@@ -273,6 +274,16 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         }
     }
 
+    private func makeFullImage(from pixelBuffer: CVPixelBuffer) -> UIImage? {
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let context = CIContext()
+        
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+            return nil
+        }
+        
+        return UIImage(cgImage: cgImage)
+    }
     
     private func makeCroppedImage(
         // 이미지 전송이 필요할 경우
@@ -314,11 +325,18 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
 
 
         pixelHandler?(pixelBuffer, cropRect)
-
+        
+        //저장용 잘린 이미지 전송
         if shouldCaptureImage {
             shouldCaptureImage = false
 
             if let image = makeCroppedImage(from: pixelBuffer, cropRect: cropRect) {
+                imageHandler?(image)
+            }
+        }
+        //화면 출력용 전체 이미지 생성
+        else if shouldCaptureFullImage{
+            if let image = makeFullImage(from: pixelBuffer) {
                 imageHandler?(image)
             }
         }
