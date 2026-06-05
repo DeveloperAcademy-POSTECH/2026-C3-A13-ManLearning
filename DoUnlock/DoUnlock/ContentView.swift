@@ -12,7 +12,7 @@ import LocalAuthentication
 struct ContentView: View {
 
     @State private var hasGrantedPermissions = false
-    @State private var cameraStatus: StrokeColor = .idle
+
     var body: some View {
         if !hasGrantedPermissions {
             PermissionSetupView {
@@ -22,34 +22,11 @@ struct ContentView: View {
             // FaceIDView 테스트를 위한 NavigationStack입니다.
             // Face ID 구현이 완료된 후에는 인증 결과에 따라 카메라 뷰로 전환하는 분기를 추가할 예정입니다.
             NavigationStack {
-                ZStack {
-                    CameraPreviewView(
-                        isActive: true,
-                        captureImageTrigger: false,
-                        pixelHandler: { pixelBuffer, cropRect in
-                            // 실시간 비교용
-                        },
-                        imageHandler: { image in
-                            // 캡처 이미지 처리용
-                        }
-                    )
-                    
-                        .ignoresSafeArea()
-                    CameraGuideOverlay(status: $cameraStatus)
-                        .ignoresSafeArea()
-
-                    // 테스트용 진입 버튼 — 추후 조건 로직으로 교체 예정
-                    VStack {
-                        Spacer()
-                        NavigationLink("Face ID 테스트") {
-                            FaceIDView()
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .padding(.bottom, 48)
-                    }
-                }
-                .navigationTitle("DoUnlock")
-                .navigationBarTitleDisplayMode(.inline)
+                // 권한 통과 후에는 객체 인식/유사도 비교 화면을 진입점으로 사용합니다.
+                // 카메라 조립과 DINO 비교 로직은 ObjectRecongnitionView 안에서 관리합니다.
+                ObjectRecongnitionView()
+                    .navigationTitle("DoUnlock")
+                    .navigationBarTitleDisplayMode(.inline)
             }
         }
     }
