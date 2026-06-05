@@ -23,5 +23,8 @@ Package.resolved
 # Archives
 *.xcarchive
 
-# Claude Code
+# model file
+model/
+
+# Claude Code 로컬 가이드 (머지 대상 아님)
 CLAUDE.md

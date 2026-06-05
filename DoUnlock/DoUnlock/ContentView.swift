@@ -12,6 +12,7 @@ import LocalAuthentication
 struct ContentView: View {
     @State private var hasGrantedPermissions = false
     @State private var hasSeenIntro = false
+    @State private var cameraStatus: StrokeColor = .idle
 
     var body: some View {
         if !hasGrantedPermissions {
@@ -24,7 +25,19 @@ struct ContentView: View {
             }
         } else {
             ZStack {
-                CameraPreviewView(isActive: true, frameHandler: { _ in })
+                CameraPreviewView(
+                    isActive: true,
+                    captureImageTrigger: false,
+                    pixelHandler: { pixelBuffer, cropRect in
+                        // 실시간 비교용
+                    },
+                    imageHandler: { image in
+                        // 캡처 이미지 처리용
+                    }
+                )
+                .ignoresSafeArea()
+
+                CameraGuideOverlay(status: $cameraStatus)
                     .ignoresSafeArea()
             }
         }
