@@ -29,11 +29,6 @@
 			path = DoUnlock;
 			sourceTree = "<group>";
 		};
-		F8C4C4DA2FD2B36100F82828 /* Model */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Model;
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -50,7 +45,6 @@
 		CBCAAF3C2FC8ABB8008EB235 = {
 			isa = PBXGroup;
 			children = (
-				F8C4C4DA2FD2B36100F82828 /* Model */,
 				CBCAAFD12FCD53B7008EB235 /* DoUnlock */,
 				FDA722162FD19334002DA800 /* DoUnlock.app */,
 			);
@@ -73,7 +67,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				CBCAAFD12FCD53B7008EB235 /* DoUnlock */,
-				F8C4C4DA2FD2B36100F82828 /* Model */,
 			);
 			name = DoUnlock;
 			packageProductDependencies = (
