@@ -28,22 +28,7 @@ struct ContentView: View {
                 onboardingStep += 1
             }
         } else {
-            ZStack {
-                CameraPreviewView(
-                    isActive: true,
-                    captureImageTrigger: false,
-                    pixelHandler: { pixelBuffer, cropRect in
-                        // 실시간 비교용
-                    },
-                    imageHandler: { image in
-                        // 캡처 이미지 처리용
-                    }
-                )
-                .ignoresSafeArea()
-
-                CameraGuideOverlay(status: $cameraStatus)
-                    .ignoresSafeArea()
-            }
+            DoorLockListView()
         }
     }
 

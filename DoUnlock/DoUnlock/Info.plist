@@ -6,6 +6,13 @@
 	<string></string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>비밀번호를 본인에게만 보여주기 위해 필요해요</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>주변 기기와 도어락 정보를 공유하기 위해 필요해요</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_dounlock-share._tcp</string>
+		<string>_dounlock-share._udp</string>
+	</array>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Pretendard-Black.otf</string>
