@@ -47,7 +47,7 @@ struct RegistrationCompleteView: View {
         VStack(spacing: 28) {
             VStack(spacing: 12) {
                 Text("도어락 등록 완료")
-                    .textStyle(.heading)
+                    .textStyle(.completionTitle)
                     .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)
 
