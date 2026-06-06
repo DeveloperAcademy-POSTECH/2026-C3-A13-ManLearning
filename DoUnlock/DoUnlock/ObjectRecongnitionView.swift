@@ -10,12 +10,18 @@ import SwiftUI
 
 final class DetectionViewModel: ObservableObject {
     @Published var guideStatus: StrokeColor = .idle
+    @Published var latestConfidence: Float? = nil
 
     private let detector: YOLODetector?
     private let qualityAnalyzer = CropQualityAnalyzer()
     private var isProcessing = false
-    private var isStable = false
     private var isDetected = false
+    private var detectionStartTime: Date?
+    private var lastDetectionTime: Date?
+    private var passLostTime: Date?
+    private let requiredDetectionDuration: TimeInterval = 3
+    private let detectionGracePeriod: TimeInterval = 1
+    private let passLostDuration: TimeInterval = 3
     private var errorTimer: Timer?
 
     init() {
@@ -36,47 +42,80 @@ final class DetectionViewModel: ObservableObject {
     }
 
     func process(pixelBuffer: CVPixelBuffer) {
-        // 안정성: 동기 분석 (videoQueue에서 실행)
-        let quality = qualityAnalyzer.analyzeCenterCrop(in: pixelBuffer)
-        let stable = quality?.passesQualityGate ?? false
-
-        // 객체 감지: 비동기 (프레임 쌓임 방지)
-        guard !isProcessing else {
-            isStable = stable
-            return
-        }
+        guard !isProcessing else { return }
         isProcessing = true
 
-        detector?.detect(pixelBuffer: pixelBuffer, minimumConfidence: 0.4) { [weak self] result in
+        detector?.detect(pixelBuffer: pixelBuffer, minimumConfidence: 0.6) { [weak self] result in
             guard let self else { return }
             let detected: Bool
+            let confidence: Float?
             if case .success(let found) = result {
                 detected = !found.isEmpty
+                confidence = found.first?.confidence
             } else {
                 detected = false
+                confidence = nil
             }
 
             DispatchQueue.main.async {
                 self.isProcessing = false
-                self.isStable = stable
                 self.isDetected = detected
+                self.latestConfidence = confidence
                 self.updateStatus()
             }
         }
     }
 
     private func updateStatus() {
-        guard guideStatus == .idle else { return }
-        if isDetected && isStable {
-            guideStatus = .pass
-            errorTimer?.invalidate()
+        let now = Date()
+
+        switch guideStatus {
+        case .idle:
+            if isDetected {
+                lastDetectionTime = now
+                if detectionStartTime == nil { detectionStartTime = now }
+            } else {
+                if let last = lastDetectionTime, now.timeIntervalSince(last) > detectionGracePeriod {
+                    detectionStartTime = nil
+                }
+            }
+            if let start = detectionStartTime, now.timeIntervalSince(start) >= requiredDetectionDuration {
+                guideStatus = .pass
+                errorTimer?.invalidate()
+                passLostTime = nil
+            }
+
+        case .pass:
+            if isDetected {
+                lastDetectionTime = now
+                passLostTime = nil
+            } else {
+                if let last = lastDetectionTime, now.timeIntervalSince(last) > detectionGracePeriod {
+                    if passLostTime == nil { passLostTime = now }
+                }
+                if let lost = passLostTime, now.timeIntervalSince(lost) >= passLostDuration {
+                    guideStatus = .error
+                }
+            }
+
+        case .error:
+            if isDetected {
+                lastDetectionTime = now
+                detectionStartTime = now
+                passLostTime = nil
+                guideStatus = .idle
+                errorTimer?.invalidate()
+                scheduleErrorTimeout()
+            }
         }
     }
 
     func reset() {
         guideStatus = .idle
         isDetected = false
-        isStable = false
+        detectionStartTime = nil
+        lastDetectionTime = nil
+        passLostTime = nil
         qualityAnalyzer.reset()
         errorTimer?.invalidate()
         scheduleErrorTimeout()
@@ -101,6 +140,30 @@ struct ObjectRecongnitionView: View {
 
             CameraGuideOverlay(status: $viewModel.guideStatus)
                 .ignoresSafeArea()
+
+            // 테스트용 인식률 표시
+            VStack {
+                Spacer()
+                    .frame(height: UIScreen.main.bounds.height * 0.5 + UIScreen.main.bounds.height * 0.45 / 2 + 12)
+                if let confidence = viewModel.latestConfidence {
+                    Text("인식률: \(Int(confidence * 100))%")
+                        .font(.custom("Pretendard-Medium", size: 14))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.black.opacity(0.5))
+                        .clipShape(Capsule())
+                } else {
+                    Text("인식률: -")
+                        .font(.custom("Pretendard-Medium", size: 14))
+                        .foregroundColor(.white.opacity(0.6))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(.black.opacity(0.5))
+                        .clipShape(Capsule())
+                }
+                Spacer()
+            }
 
             if viewModel.guideStatus == .pass {
                 VStack {
