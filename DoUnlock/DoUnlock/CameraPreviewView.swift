@@ -243,10 +243,10 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         }
         session.addInput(input)
 
-        // CoreML 입력으로 바로 넘기기 쉬운 BGRA pixel buffer를 요청합니다.
+        // YCbCr bi-planar: CropQualityAnalyzer 루마 플레인 접근 및 Vision 추론 모두 지원합니다.
         let output = AVCaptureVideoDataOutput()
         output.videoSettings = [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         ]
         output.alwaysDiscardsLateVideoFrames = true
         output.setSampleBufferDelegate(self, queue: videoQueue)
