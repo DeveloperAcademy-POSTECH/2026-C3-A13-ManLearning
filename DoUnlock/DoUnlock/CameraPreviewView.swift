@@ -330,7 +330,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         if shouldCaptureImage {
             shouldCaptureImage = false
 
-            if let image = makeCroppedImage(from: pixelBuffer, cropRect: cropRect) {
+            if let image = makeFullImage(from: pixelBuffer) {
                 imageHandler?(image)
             }
         }
