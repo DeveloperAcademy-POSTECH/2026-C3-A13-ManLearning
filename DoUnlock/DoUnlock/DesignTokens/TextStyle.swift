@@ -18,6 +18,7 @@ import SwiftUI
 
 enum TextStyle {
     case heading        // 페이지 대제목
+    case completionTitle // 완료 화면 대제목 (Bold 30)
     case displayTitle   // 온보딩 대형 타이틀 (ExtraBold 30)
     case navTitle       // 화면 상단 타이틀 (Bold 20)
     case brandName      // 앱 로고 옆 이름
@@ -43,6 +44,8 @@ struct AppTextModifier: ViewModifier {
         switch style {
         case .heading:
             content.font(.heading).tracking(-0.5)
+        case .completionTitle:
+            content.font(.completionTitle).tracking(-0.5)
         case .displayTitle:
             content.font(.displayTitle).tracking(-0.5)
         case .navTitle:

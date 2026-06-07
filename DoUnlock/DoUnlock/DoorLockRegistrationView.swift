@@ -14,6 +14,7 @@ struct DoorLockRegistrationView: View {
     @State private var category: String
     @State private var name: String
     @State private var password: String
+    @State private var showShareSheet = false
     @Environment(\.dismiss) private var dismiss
 
     private let categories = ["도어락", "자전거", "캐리어", "기타"]
@@ -76,6 +77,11 @@ struct DoorLockRegistrationView: View {
                 .padding(.horizontal, 16)
         }
         .navigationBarHidden(true)
+        .sheet(isPresented: $showShareSheet) {
+            DeviceShareSheet()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
     }
 
     // MARK: - Sub views
@@ -113,8 +119,11 @@ struct DoorLockRegistrationView: View {
                 circleNavButton { Image(systemName: "chevron.left") }
             }
             Spacer()
-            Button { } label: {
-                circleNavButton { Image(systemName: "square.and.arrow.up") }
+            // 공유는 저장된 도어락(수정 모드)에서만. create 모드(미저장)에선 숨김.
+            if case .edit = mode {
+                Button { showShareSheet = true } label: {
+                    circleNavButton { Image(systemName: "square.and.arrow.up") }
+                }
             }
         }
     }

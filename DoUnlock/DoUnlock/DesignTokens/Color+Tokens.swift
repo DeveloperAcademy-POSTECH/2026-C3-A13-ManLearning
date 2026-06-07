@@ -40,6 +40,8 @@ extension Color {
     // MARK: - Status
     static let successBg         = Color(hex: 0xDCFCE7)
     static let successFg         = Color(hex: 0x16A34A)
+    static let destructiveBg     = Color(hex: 0xFF383C, opacity: 0.14)  // "나중에" 등 거절 버튼 배경
+    static let destructiveFg     = Color(hex: 0xFF383C)                 // 거절 버튼 텍스트
 
     // MARK: - Door lock icon gradient
     static let lockIconStart     = Color(hex: 0x12122A)
