@@ -16,8 +16,7 @@ struct CameraPreviewView: UIViewRepresentable {
     let isActive: Bool    // true이면 라이브 프리뷰 세션을 실행, false이면 카메라 장치 점유를 해제
     let captureImageTrigger: Bool
     let pixelHandler: (CVPixelBuffer, CGRect) -> Void
-    let imageHandler: (UIImage) -> Void
-
+    let imageHandler: (UIImage, UIImage) -> Void
 
     func makeUIView(context: Context) -> PreviewView {
         // AVCaptureVideoPreviewLayer를 가진 UIView를 만들고 coordinator가 세션을 연결합니다.
@@ -99,7 +98,7 @@ final class PreviewView: UIView {
 final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     private var pixelHandler: ((CVPixelBuffer, CGRect) -> Void)?
-    private var imageHandler: ((UIImage) -> Void)?
+    private var imageHandler: ((UIImage, UIImage) -> Void)?
     private var normalizedGuideRect: CGRect?
 
 
@@ -108,6 +107,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
     private let cropHeightRatio: CGFloat = 0.45  //카메라 세로 대비 객체 인식 비율
 
     private var shouldCaptureImage = false
+    private var shouldCaptureFullImage = false
     private var lastCaptureImageTrigger = false
     
     // 라이브 카메라 입력/출력을 묶는 capture session입니다.
@@ -139,7 +139,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         for view: PreviewView,
         captureImageTrigger: Bool,
         pixelHandler: @escaping (CVPixelBuffer, CGRect) -> Void,
-        imageHandler: @escaping (UIImage) -> Void,
+        imageHandler: @escaping (UIImage, UIImage) -> Void,
         isActive: Bool
     ) {
         self.isActive = isActive
@@ -166,7 +166,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         isActive: Bool,
         captureImageTrigger: Bool,
         pixelHandler: @escaping (CVPixelBuffer, CGRect) -> Void,
-        imageHandler: @escaping (UIImage) -> Void
+        imageHandler: @escaping (UIImage, UIImage) -> Void
     ) {
         self.pixelHandler = pixelHandler
         self.imageHandler = imageHandler
@@ -242,10 +242,10 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         }
         session.addInput(input)
 
-        // CoreML 입력으로 바로 넘기기 쉬운 BGRA pixel buffer를 요청합니다.
+        // YCbCr bi-planar: CropQualityAnalyzer 루마 플레인 접근 및 Vision 추론 모두 지원합니다.
         let output = AVCaptureVideoDataOutput()
         output.videoSettings = [
-            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
         ]
         output.alwaysDiscardsLateVideoFrames = true
         output.setSampleBufferDelegate(self, queue: videoQueue)
@@ -273,6 +273,16 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         }
     }
 
+    private func makeFullImage(from pixelBuffer: CVPixelBuffer) -> UIImage? {
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let context = CIContext()
+        
+        guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+            return nil
+        }
+        
+        return UIImage(cgImage: cgImage)
+    }
     
     private func makeCroppedImage(
         // 이미지 전송이 필요할 경우
@@ -314,13 +324,20 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
 
 
         pixelHandler?(pixelBuffer, cropRect)
-
+        
+        //저장용 잘린 이미지 전송
         if shouldCaptureImage {
             shouldCaptureImage = false
 
-            if let image = makeCroppedImage(from: pixelBuffer, cropRect: cropRect) {
-                imageHandler?(image)
+            guard
+                let fullImage = makeFullImage(from: pixelBuffer),
+                let croppedImage = makeCroppedImage(from: pixelBuffer, cropRect: cropRect)
+            else {
+                return
             }
+
+            imageHandler?(fullImage, croppedImage)
         }
+
     }
 }
