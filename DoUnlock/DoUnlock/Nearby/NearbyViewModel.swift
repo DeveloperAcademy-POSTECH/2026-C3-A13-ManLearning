@@ -19,14 +19,14 @@ final class NearbyViewModel: ObservableObject {
     @Published var isSendComplete:  Bool        = false
 
     // --- 수신측 ---
-    @Published var receivedLock:     DoorLockDraft? = nil
-    @Published var receivedFrom:     String         = ""
-    @Published var showReceiveSheet: Bool           = false
+    @Published var receivedLock:     NearbyPacket? = nil   // DoorLockDraft 제거 → NearbyPacket 으로 통일
+    @Published var receivedFrom:     String        = ""
+    @Published var showReceiveSheet: Bool          = false
 
     // --- 내부 상태 ---
-    private let manager:     NearbyManager  = NearbyManager()
-    private var pendingLock: DoorLockDraft? = nil
-    private var pendingPeer: MCPeerID?      = nil
+    private let manager:     NearbyManager = NearbyManager()
+    private var pendingLock: NearbyPacket? = nil           // DoorLockDraft 제거
+    private var pendingPeer: MCPeerID?     = nil
 
     // ========================= init =========================
 
@@ -58,7 +58,7 @@ final class NearbyViewModel: ObservableObject {
 
     // ========================= 전송 =========================
 
-    func sendLock(_ lock: DoorLockDraft, to peer: MCPeerID) {
+    func sendLock(_ lock: NearbyPacket, to peer: MCPeerID) {   // DoorLockDraft 제거
         pendingLock = lock
         pendingPeer = peer
         // 이미 연결된 경우 바로 전송, 아직 연결 중이면 onPeerConnected 에서 전송
@@ -69,8 +69,8 @@ final class NearbyViewModel: ObservableObject {
 
     // ========================= 수신 처리 =========================
 
-    // "공유 허용" 버튼 — 도어락 반환 후 상태 초기화
-    func acceptReceive() -> DoorLockDraft? {
+    // "공유 허용" 버튼 — 패킷 반환 후 상태 초기화
+    func acceptReceive() -> NearbyPacket? {   // DoorLockDraft 제거
         let lock        = receivedLock
         receivedLock    = nil
         showReceiveSheet = false
@@ -114,10 +114,8 @@ final class NearbyViewModel: ObservableObject {
                   let packet = try? JSONDecoder().decode(NearbyPacket.self, from: data)
             else { return }
 
-            let draft = DoorLockDraft(category: packet.category,
-                                       name:     packet.name,
-                                       password: packet.password)
-            self.receivedLock     = draft
+            // DoorLockDraft 제거 — NearbyPacket 그대로 저장
+            self.receivedLock     = packet
             self.receivedFrom     = peer.displayName
             self.showReceiveSheet = true
         }
@@ -126,11 +124,7 @@ final class NearbyViewModel: ObservableObject {
     // ========================= 내부 헬퍼 =========================
 
     private func sendPendingLock(to peer: MCPeerID) {
-        guard let lock = pendingLock else { return }
-
-        let packet = NearbyPacket(category: lock.category,
-                                   name:     lock.name,
-                                   password: lock.password)
+        guard let packet = pendingLock else { return }   // DoorLockDraft 제거 — 직접 인코딩
 
         guard let data = try? JSONEncoder().encode(packet) else { return }
 

@@ -13,8 +13,8 @@ import SwiftUI
 struct ShareReceiveSheet: View {
     // ==== Nearby ViewModel (수신 데이터 + 수락/거절 처리)
     @ObservedObject var nearbyVM: NearbyViewModel
-    // ==== 수락 시 도어락을 목록에 추가하는 콜백
-    var onAccept: (DoorLockDraft) -> Void
+    // ==== 수락 시 도어락을 목록에 추가하는 콜백 (DoorLockDraft 제거 → NearbyPacket)
+    var onAccept: (NearbyPacket) -> Void
     @Environment(\.dismiss) private var dismiss
 
     // ==== 실제 수신 데이터 기반 computed 프로퍼티
@@ -132,9 +132,9 @@ struct ShareReceiveSheet: View {
 }
 
 #Preview {
-    // ==== 프리뷰: 목업 VM 으로 확인
+    // ==== 프리뷰: 목업 NearbyPacket 사용 (DoorLockDraft 제거)
     let vm = NearbyViewModel()
     vm.receivedFrom = "iPhone Air"
-    vm.receivedLock = DoorLockDraft.sampleData[0]
+    vm.receivedLock = NearbyPacket(category: "도어락", name: "우리집", password: "1234")
     return ShareReceiveSheet(nearbyVM: vm, onAccept: { _ in })
 }

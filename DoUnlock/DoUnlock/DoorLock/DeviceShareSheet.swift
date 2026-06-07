@@ -31,8 +31,8 @@ extension ShareDevice {
 }
 
 struct DeviceShareSheet: View {
-    // ==== 전송할 도어락 (DoorLockRegistrationView 에서 전달)
-    let lock: DoorLockDraft
+    // ==== 전송할 도어락 패킷 (DoorLockDraft 제거 → NearbyPacket 으로 변경)
+    let lock: NearbyPacket
     // ==== Nearby ViewModel (environmentObject 로 주입)
     @EnvironmentObject private var nearbyVM: NearbyViewModel
 
@@ -160,8 +160,8 @@ struct DeviceShareCompleteView: View {
 }
 
 #Preview("Sheet") {
-    // ==== 프리뷰: 목업 VM 주입
-    DeviceShareSheet(lock: DoorLockDraft.sampleData[0])
+    // ==== 프리뷰: 목업 NearbyPacket 사용 (DoorLockDraft 제거)
+    DeviceShareSheet(lock: NearbyPacket(category: "도어락", name: "우리집", password: "1234"))
         .environmentObject(NearbyViewModel())
 }
 

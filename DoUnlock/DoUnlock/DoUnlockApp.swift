@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct DoUnlockApp: App {
@@ -13,5 +14,6 @@ struct DoUnlockApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: DoorLock.self)
     }
 }

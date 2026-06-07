@@ -6,13 +6,16 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct DoorLockListView: View {
-    // 데이터 seam: 추후 팀원 SwiftData 머지 시 `@Query private var locks: [DoorLock]`로 교체.
-    @State private var locks: [DoorLockDraft] = DoorLockDraft.sampleData
+    // 최근 수정 순으로 정렬. 저장은 SwiftData가 자동 처리.
+    @Query(sort: \DoorLock.updateAt, order: .reverse) private var locks: [DoorLock]
 
     // ==== Nearby ViewModel — 광고(수신측)와 수신 시트 표시를 담당
     @StateObject private var nearbyVM = NearbyViewModel()
+    // ==== 수신된 도어락을 SwiftData에 저장하기 위해 modelContext 필요
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         ZStack {
@@ -28,13 +31,10 @@ struct DoorLockListView: View {
                     LazyVStack(spacing: 20) {
                         ForEach(locks) { lock in
                             NavigationLink {
+                                // DoorLock은 참조 타입 → 수정뷰에서 직접 변경하면 @Query가 자동 반영.
                                 // ==== nearbyVM 을 하위 뷰에 전달 (공유 버튼 연결용)
-                                DoorLockRegistrationView(mode: .edit(lock)) { updated in
-                                    if let idx = locks.firstIndex(where: { $0.id == updated.id }) {
-                                        locks[idx] = updated
-                                    }
-                                }
-                                .environmentObject(nearbyVM)
+                                DoorLockRegistrationView(mode: .edit(lock))
+                                    .environmentObject(nearbyVM)
                             } label: {
                                 DoorLockCard(lock: lock)
                             }
@@ -69,8 +69,10 @@ struct DoorLockListView: View {
         }) {
             ShareReceiveSheet(
                 nearbyVM: nearbyVM,
-                onAccept: { newLock in
-                    locks.append(newLock) // ==== 수락된 도어락을 목록에 추가
+                onAccept: { packet in
+                    // ==== NearbyPacket → DoorLock 변환 후 SwiftData에 저장 (DoorLockDraft 제거)
+                    let lock = DoorLock(category: packet.category, name: packet.name, password: packet.password, image: Data())
+                    modelContext.insert(lock)
                 }
             )
             .presentationDetents([.height(490)]) // Figma 박스(484) ≈ 화면 중간, 단일 detent라 더 못 올라감
@@ -82,7 +84,7 @@ struct DoorLockListView: View {
 
     private var registerButton: some View {
         NavigationLink {
-            // 등록(create) 모드. 완료 시 기존 RegistrationCompleteView 플로우 유지.
+            // 등록(create) 모드. imageData는 임시 placeholder — 촬영 플로우 연결 시 교체.
             // ==== nearbyVM 전달 (create 모드에서는 공유 버튼 숨김이지만 일관성 유지)
             DoorLockRegistrationView(mode: .create)
                 .environmentObject(nearbyVM)
@@ -110,7 +112,15 @@ struct DoorLockListView: View {
 }
 
 #Preview {
-    NavigationStack {
+    let container = try! ModelContainer(
+        for: DoorLock.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
+    container.mainContext.insert(DoorLock(category: "도어락", name: "우리집", password: "1234", image: Data()))
+    container.mainContext.insert(DoorLock(category: "자전거", name: "본가", password: "5678", image: Data()))
+
+    return NavigationStack {
         DoorLockListView()
     }
+    .modelContainer(container)
 }
