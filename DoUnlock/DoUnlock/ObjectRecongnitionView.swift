@@ -64,8 +64,8 @@ struct ObjectRecongnitionView: View {
                         )
                     }
                 },
-                imageHandler: { image in
-                    // 이 image는 화면 중앙 네모칸 영역만 crop된 이미지
+                imageHandler: { fullImage, croppedImage in
+                    // fullImage: 전체 프레임, croppedImage: 화면 중앙 네모칸 영역만 crop된 이미지
                 }
             )
             .ignoresSafeArea()

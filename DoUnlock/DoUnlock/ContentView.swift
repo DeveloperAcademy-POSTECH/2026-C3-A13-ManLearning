@@ -9,27 +9,36 @@ import SwiftUI
 import AVFoundation
 
 struct ContentView: View {
-
+    // 첫 실행 여부 영속. true면 권한/온보딩을 건너뛰고 곧장 메인 탭바(카메라)로 진입.
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    
     @State private var hasGrantedPermissions = false
-
+    @State private var onboardingStep = 0
+    
     var body: some View {
-        if !hasGrantedPermissions {
+        if hasCompletedOnboarding {
+            // 온보딩 완료 후(또는 재실행): 메인 탭바 — 기본 scan(카메라) 탭
+            MainTabView()
+        } else if !hasGrantedPermissions {
             PermissionSetupView {
                 requestPermissions()
             }
-        } else {
-            // FaceIDView 테스트를 위한 NavigationStack입니다.
-            // Face ID 구현이 완료된 후에는 인증 결과에 따라 카메라 뷰로 전환하는 분기를 추가할 예정입니다.
-            NavigationStack {
-                // 권한 통과 후에는 객체 인식/유사도 비교 화면을 진입점으로 사용합니다.
-                // 카메라 조립과 DINO 비교 로직은 ObjectRecongnitionView 안에서 관리합니다.
-                ObjectRecongnitionView()
-                    .navigationTitle("DoUnlock")
-                    .navigationBarTitleDisplayMode(.inline)
+        } else if onboardingStep < OnboardingPage.all.count {
+            OnboardingPageView(
+                page: OnboardingPage.all[onboardingStep],
+                currentStep: onboardingStep,
+                totalSteps: OnboardingPage.all.count
+            ) {
+                // 마지막 페이지 "등록하러 가기" → 온보딩 완료 처리 → MainTabView(카메라)
+                if onboardingStep == OnboardingPage.all.count - 1 {
+                    hasCompletedOnboarding = true
+                } else {
+                    onboardingStep += 1
+                }
             }
         }
     }
-
+    
     private func requestPermissions() {
         AVCaptureDevice.requestAccess(for: .video) { cameraGranted in
             guard cameraGranted else { return }

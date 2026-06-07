@@ -2,6 +2,10 @@ import SwiftUI
 
 struct RegistrationCompleteView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppRouter.self) private var router
+    let name: String
+    let category: String
+    let imageData : Data
 
     var body: some View {
         ZStack {
@@ -47,7 +51,7 @@ struct RegistrationCompleteView: View {
         VStack(spacing: 28) {
             VStack(spacing: 12) {
                 Text("도어락 등록 완료")
-                    .textStyle(.heading)
+                    .textStyle(.completionTitle)
                     .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)
 
@@ -79,12 +83,13 @@ struct RegistrationCompleteView: View {
                 )
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("우리집")
+                Text(name)
                     .textStyle(.cardTitle)
                     .foregroundStyle(Color.textPrimary)
-                Text("1203호 · 현관문 오른쪽 도어락")
+                Text(category)
                     .textStyle(.cardSubtitle)
                     .foregroundStyle(Color.textMuted)
+
             }
 
             Spacer()
@@ -105,7 +110,8 @@ struct RegistrationCompleteView: View {
     private var actionButtons: some View {
         VStack(spacing: 8) {
             Button {
-                dismiss()
+                // 촬영 cover를 닫고 목록(password) 탭으로 전환. cover는 ObjectDetectView가 소유하므로 신호로 위임.
+                router.finishCaptureFlowRequested = true
             } label: {
                 Text("등록된 목록 확인하기")
                     .textStyle(.buttonLarge)
@@ -133,6 +139,7 @@ struct RegistrationCompleteView: View {
 
 #Preview {
     NavigationStack {
-        RegistrationCompleteView()
+        RegistrationCompleteView(name: "우리집", category: "도어락", imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!)
     }
+    .environment(AppRouter())
 }
