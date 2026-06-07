@@ -7,6 +7,7 @@
 
 import CoreVideo
 import Foundation
+import LocalAuthentication // [STEP 1] Face ID를 사용하려면 이 import가 필요합니다
 import SwiftUI
 
 // CVPixelBuffer는 카메라 프레임 원본이라 Swift concurrency에서 자동 Sendable로 보지 않습니다.
@@ -30,6 +31,20 @@ struct ObjectRecongnitionView: View {
     @State private var lastComparisonDate = Date.distantPast
     @State private var latestResult: ObjectSimilarityResult?
     @State private var latestErrorMessage: String?
+
+    // [STEP 2] 상태 변수 3개를 여기에 추가하세요.
+    //
+    // @State private var isAuthenticating = false
+    // → Face ID 팝업이 이미 떠 있는지 여부입니다.
+    //   이게 없으면 1초마다 Face ID가 반복 호출됩니다.
+    //
+    // @State private var isAuthenticated = false
+    // → Face ID 인증을 통과했는지 여부입니다.
+    //   true가 되면 비밀번호 오버레이를 화면에 보여줍니다.
+    //
+    // private let testPassword = "1234"
+    // → 지금은 저장된 비밀번호가 없으니 테스트용으로 하드코딩합니다.
+    //   나중에 실제 저장 데이터로 교체하면 됩니다.
 
     // 카메라 프레임은 매우 자주 들어오기 때문에 DINO를 매 프레임 돌리지 않고 1초에 한 번만 비교합니다.
     private let comparisonInterval: TimeInterval = 1
@@ -62,6 +77,24 @@ struct ObjectRecongnitionView: View {
             // 하단에는 현재 유사도와 가장 유사한 mock 이미지 이름을 보여줍니다.
             similarityStatusView
                 .padding(.bottom, 32)
+
+            // [STEP 3] 비밀번호 오버레이를 여기에 추가하세요.
+            //
+            // if isAuthenticated {
+            //     ZStack {
+            //         Color.black.opacity(0.6).ignoresSafeArea()  // 반투명 배경
+            //         VStack {
+            //             Text("비밀번호")
+            //             Text(testPassword).font(.largeTitle).bold()
+            //             Button("닫기") {
+            //                 // 닫으면 인증 상태를 초기화해서 카메라 화면으로 돌아갑니다.
+            //                 isAuthenticated = false
+            //                 isAuthenticating = false
+            //             }
+            //         }
+            //         .foregroundStyle(.white)
+            //     }
+            // }
         }
         .task {
             prepareSimilarity()
@@ -179,7 +212,47 @@ struct ObjectRecongnitionView: View {
                 "Best mock match: \(bestMatchName), score: \(similarityResult.score)"
             )
         }
+
+        // [STEP 4] 객체가 인식됐을 때 Face ID를 호출하세요.
+        //
+        // 조건: isMatched가 true이고, 아직 인증 중이 아니고, 이미 인증된 상태도 아닐 때만 실행합니다.
+        // guard similarityResult.isMatched, !isAuthenticating, !isAuthenticated else { return }
+        //
+        // 그 다음 아래 STEP 5에서 만들 authenticateWithFaceID()를 여기서 호출하면 됩니다.
+        // authenticateWithFaceID()
     }
+
+    // [STEP 5] Face ID 인증 함수를 여기에 추가하세요.
+    //
+    // private func authenticateWithFaceID() {
+    //
+    //     // 인증 중 상태로 바꿔서 중복 호출을 막습니다.
+    //     isAuthenticating = true
+    //
+    //     let context = LAContext()
+    //     var error: NSError?
+    //
+    //     // 이 기기에서 Face ID를 쓸 수 있는지 먼저 확인합니다.
+    //     if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+    //
+    //         // Face ID 팝업을 띄웁니다. 결과는 백그라운드 스레드로 옵니다.
+    //         context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "잠금을 해제합니다.") { success, _ in
+    //             DispatchQueue.main.async {
+    //                 if success {
+    //                     // 인증 성공 → isAuthenticated를 true로 바꾸면 STEP 3의 오버레이가 나타납니다.
+    //                     isAuthenticated = true
+    //                 } else {
+    //                     // 인증 실패 또는 취소 → 잠금을 풀고 카메라 화면으로 돌아갑니다.
+    //                     isAuthenticating = false
+    //                 }
+    //             }
+    //         }
+    //
+    //     } else {
+    //         // Face ID를 아예 쓸 수 없는 기기일 때 (시뮬레이터 포함)
+    //         isAuthenticating = false
+    //     }
+    // }
 
     private func handleComparisonFailure(_ message: String) {
         // 모델, mock 이미지, crop 변환 중 문제가 생기면 빨간 프레임과 안내 문구로 상태를 보여줍니다.
