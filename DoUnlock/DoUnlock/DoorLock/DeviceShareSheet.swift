@@ -8,7 +8,7 @@
 //
 //  ⚠️ 표시 기기는 실제 통신이 아닌 임시(stand-in) 목업입니다.
 //  추후 근거리 통신(MultipeerConnectivity 등)을 붙이면 `ShareDevice.sampleData`를
-//  실제 탐색된 기기 목록으로 교체하면 됩니다. (DoorLockDraft seam과 같은 패턴)
+//  실제 탐색된 기기 목록으로 교체하면 됩니다.
 //
 
 import SwiftUI

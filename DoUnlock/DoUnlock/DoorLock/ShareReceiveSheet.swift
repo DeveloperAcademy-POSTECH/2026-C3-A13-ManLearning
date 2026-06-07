@@ -8,7 +8,7 @@
 //  ⚠️ 발신 기기명·도어락 카드는 실제 통신이 아닌 임시(목업) 값입니다.
 //  추후 근거리 통신(MultipeerConnectivity 등) 수신부를 붙이면 `senderName`과 카드 내용을
 //  실제 수신 데이터로 교체하고, 이 시트를 수신 이벤트에 연결하면 됩니다.
-//  (DoorLockDraft / ShareDevice.sampleData seam과 같은 패턴)
+//  (ShareDevice.sampleData seam과 같은 패턴)
 //
 
 import SwiftUI
