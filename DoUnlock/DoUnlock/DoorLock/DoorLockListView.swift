@@ -12,6 +12,8 @@ struct DoorLockListView: View {
     // 최근 수정 순으로 정렬. 저장은 SwiftData가 자동 처리.
     @Query(sort: \DoorLock.updateAt, order: .reverse) private var locks: [DoorLock]
 
+    @Environment(AppRouter.self) private var router
+
     #if DEBUG
     // 임시: 수신 시트(ShareReceiveSheet) 검증용. 실제 근거리 통신 수신 로직 붙이면 제거.
     @State private var showReceiveSheet = false
@@ -70,10 +72,9 @@ struct DoorLockListView: View {
     // MARK: - Sub views
 
     private var registerButton: some View {
-        NavigationLink {
-            // 등록(create) 모드. 완료 시 기존 RegistrationCompleteView 플로우 유지.
-            // imageData는 임시 placeholder — 촬영 플로우(다른 팀원) 연결 시 캡처 이미지 전달로 교체.
-            DoorLockRegistrationView(mode: .create)
+        // 등록은 항상 카메라 촬영을 거친다 → scan(카메라) 탭으로 전환.
+        Button {
+            router.selectedTab = .scan
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "plus")
@@ -109,4 +110,5 @@ struct DoorLockListView: View {
         DoorLockListView()
     }
     .modelContainer(container)
+    .environment(AppRouter())
 }

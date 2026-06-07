@@ -10,27 +10,17 @@ import AVFoundation
 import LocalAuthentication
 
 struct ContentView: View {
-    // ⚠️ 임시(테스트용): true면 권한/온보딩을 건너뛰고 도어락 목록부터 시작해
-    // 목록 → 정보 수정 흐름을 시뮬레이터/실기기에서 바로 확인할 수 있다.
-    // 테스트가 끝나면 false로 되돌릴 것.
-    private let showDoorLockListForTesting = true
+    // 첫 실행 여부 영속. true면 권한/온보딩을 건너뛰고 곧장 메인 탭바(카메라)로 진입.
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
     @State private var hasGrantedPermissions = false
     @State private var onboardingStep = 0
 
     var body: some View {
-        if showDoorLockListForTesting {
-            NavigationStack {
-                DoorLockListView()
-            }
-        } else {
-            mainFlow
-        }
-    }
-
-    @ViewBuilder
-    private var mainFlow: some View {
-        if !hasGrantedPermissions {
+        if hasCompletedOnboarding {
+            // 온보딩 완료 후(또는 재실행): 메인 탭바 — 기본 scan(카메라) 탭
+            MainTabView()
+        } else if !hasGrantedPermissions {
             PermissionSetupView {
                 requestPermissions()
             }
@@ -40,11 +30,13 @@ struct ContentView: View {
                 currentStep: onboardingStep,
                 totalSteps: OnboardingPage.all.count
             ) {
-                onboardingStep += 1
+                // 마지막 페이지 "등록하러 가기" → 온보딩 완료 처리 → MainTabView(카메라)
+                if onboardingStep == OnboardingPage.all.count - 1 {
+                    hasCompletedOnboarding = true
+                } else {
+                    onboardingStep += 1
+                }
             }
-        } else {
-            // 온보딩 완료 → 촬영/인식 화면 (팀원 정필규)
-            ObjectDetectView()
         }
     }
 
