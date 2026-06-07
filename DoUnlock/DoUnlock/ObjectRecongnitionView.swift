@@ -12,13 +12,11 @@ import UIKit
 struct CaptureReviewData: Identifiable {
     let id = UUID()
     let image: UIImage
-    let boundingBox: CGRect?
 }
 
 final class DetectionViewModel: ObservableObject {
     @Published var guideStatus: StrokeColor = .idle
     @Published var latestConfidence: Float? = nil
-    @Published var latestDetection: Detection? = nil
 
     private let detector: YOLODetector?
     private let qualityAnalyzer = CropQualityAnalyzer()
@@ -57,22 +55,18 @@ final class DetectionViewModel: ObservableObject {
             guard let self else { return }
             let detected: Bool
             let confidence: Float?
-            let detection: Detection?
             if case .success(let found) = result {
                 detected = !found.isEmpty
                 confidence = found.first?.confidence
-                detection = found.first
             } else {
                 detected = false
                 confidence = nil
-                detection = nil
             }
 
             DispatchQueue.main.async {
                 self.isProcessing = false
                 self.isDetected = detected
                 self.latestConfidence = confidence
-                self.latestDetection = detection
                 self.updateStatus()
             }
         }
@@ -128,7 +122,6 @@ final class DetectionViewModel: ObservableObject {
         detectionStartTime = nil
         lastDetectionTime = nil
         passLostTime = nil
-        latestDetection = nil
         latestConfidence = nil
         qualityAnalyzer.reset()
         errorTimer?.invalidate()
@@ -150,9 +143,8 @@ struct ObjectRecongnitionView: View {
                     viewModel.process(pixelBuffer: pixelBuffer)
                 },
                 imageHandler: { image in
-                    let box = viewModel.latestDetection?.boundingBox
                     DispatchQueue.main.async {
-                        reviewData = CaptureReviewData(image: image, boundingBox: box)
+                        reviewData = CaptureReviewData(image: image)
                     }
                 }
             )
@@ -209,7 +201,6 @@ struct ObjectRecongnitionView: View {
         .fullScreenCover(item: $reviewData) { data in
             CapturedImageReviewView(
                 image: data.image,
-                boundingBox: data.boundingBox,
                 onRetake: {
                     reviewData = nil
                     viewModel.reset()

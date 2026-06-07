@@ -10,15 +10,14 @@ import UIKit
 
 struct CapturedImageReviewView: View {
     let image: UIImage
-    let boundingBox: CGRect?   // normalized (0-1), origin top-left, from YOLO
     let onRetake: () -> Void
 
-    private let fallbackWidthRatio: CGFloat = 0.63
-    private let fallbackHeightRatio: CGFloat = 0.45
+    let widthRatio: CGFloat = 0.63
+    let heightRatio: CGFloat = 0.45
 
     var body: some View {
         GeometryReader { geometry in
-            let boxRect = displayRect(for: boundingBox, in: geometry.size)
+            let boxRect = guideRect(in: geometry.size)
 
             ZStack {
                 // 1. 배경: 전체 이미지 어둡게
@@ -30,7 +29,7 @@ struct CapturedImageReviewView: View {
                     .overlay(Color.black.opacity(0.55))
                     .ignoresSafeArea()
 
-                // 2. 바운딩 박스 영역만 원본으로 보이게 (마스크)
+                // 2. 가이드 박스 영역만 원본으로 보이게 (마스크)
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
@@ -43,7 +42,7 @@ struct CapturedImageReviewView: View {
                     )
                     .ignoresSafeArea()
 
-                // 3. 바운딩 박스 테두리
+                // 3. 가이드 박스 테두리
                 Rectangle()
                     .stroke(Color.green, lineWidth: 3)
                     .frame(width: boxRect.width, height: boxRect.height)
@@ -60,7 +59,7 @@ struct CapturedImageReviewView: View {
                 }
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
-                .frame(width: geometry.size.width * fallbackWidthRatio, alignment: .leading)
+                .frame(width: geometry.size.width * widthRatio, alignment: .leading)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
                 .position(
                     x: geometry.size.width / 2,
@@ -102,42 +101,19 @@ struct CapturedImageReviewView: View {
         .ignoresSafeArea()
     }
 
-    // YOLO normalized box → screen coordinates (accounts for scaledToFill offset)
-    private func screenRect(for box: CGRect, in size: CGSize) -> CGRect {
-        let imgSize = image.size
-        guard imgSize.width > 0, imgSize.height > 0 else { return fallbackRect(in: size) }
-        let scale = max(size.width / imgSize.width, size.height / imgSize.height)
-        let scaledW = imgSize.width * scale
-        let scaledH = imgSize.height * scale
-        let originX = (size.width - scaledW) / 2
-        let originY = (size.height - scaledH) / 2
-        return CGRect(
-            x: originX + box.minX * scaledW,
-            y: originY + box.minY * scaledH,
-            width: box.width * scaledW,
-            height: box.height * scaledH
-        )
-    }
-
-    private func fallbackRect(in size: CGSize) -> CGRect {
+    private func guideRect(in size: CGSize) -> CGRect {
         CGRect(
-            x: size.width * (1 - fallbackWidthRatio) / 2,
-            y: size.height * (1 - fallbackHeightRatio) / 2,
-            width: size.width * fallbackWidthRatio,
-            height: size.height * fallbackHeightRatio
+            x: size.width * (1 - widthRatio) / 2,
+            y: size.height * (1 - heightRatio) / 2,
+            width: size.width * widthRatio,
+            height: size.height * heightRatio
         )
-    }
-
-    private func displayRect(for box: CGRect?, in size: CGSize) -> CGRect {
-        guard let box else { return fallbackRect(in: size) }
-        return screenRect(for: box, in: size)
     }
 }
 
 #Preview {
     CapturedImageReviewView(
         image: UIImage(named: "photo") ?? UIImage(),
-        boundingBox: CGRect(x: 0.2, y: 0.3, width: 0.6, height: 0.4),
         onRetake: {}
     )
 }
