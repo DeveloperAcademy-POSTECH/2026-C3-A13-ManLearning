@@ -166,7 +166,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         isActive: Bool,
         captureImageTrigger: Bool,
         pixelHandler: @escaping (CVPixelBuffer, CGRect) -> Void,
-        imageHandler: @escaping (UIImage, UIImage) -> Void,
+        imageHandler: @escaping (UIImage, UIImage) -> Void
     ) {
         self.pixelHandler = pixelHandler
         self.imageHandler = imageHandler

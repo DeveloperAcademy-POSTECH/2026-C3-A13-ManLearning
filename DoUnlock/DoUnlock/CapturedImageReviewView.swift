@@ -9,30 +9,21 @@ import SwiftUI
 import UIKit
 
 struct CapturedImageReviewView: View {
-    @State private var goToRegistration = false
-    
     let image: UIImage
-<<<<<<< HEAD
     let croppedImage: UIImage
-    let boundingBox: CGRect?   // normalized (0-1), origin top-left, from YOLO
-    let onRetake: () -> Void
-    
-    private let fallbackWidthRatio: CGFloat = 0.63
-    private let fallbackHeightRatio: CGFloat = 0.45
-    @State var GoRegister: Bool = false
-=======
+    let boundingBox: CGRect?
     let onRetake: () -> Void
 
-    let widthRatio: CGFloat = 0.63
-    let heightRatio: CGFloat = 0.45
->>>>>>> f38d93b561f0bf401fd0c4727c837b4660591bc2
+    @State private var goToRegistration = false
+
+    private let widthRatio: CGFloat = 0.63
+    private let heightRatio: CGFloat = 0.45
 
     var body: some View {
         GeometryReader { geometry in
-            let boxRect = guideRect(in: geometry.size)
+            let boxRect = displayRect(for: boundingBox, in: geometry.size)
 
             ZStack {
-                // 1. 배경: 전체 이미지 어둡게
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
@@ -41,7 +32,6 @@ struct CapturedImageReviewView: View {
                     .overlay(Color.black.opacity(0.55))
                     .ignoresSafeArea()
 
-                // 2. 가이드 박스 영역만 원본으로 보이게 (마스크)
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
@@ -54,13 +44,11 @@ struct CapturedImageReviewView: View {
                     )
                     .ignoresSafeArea()
 
-                // 3. 가이드 박스 테두리
                 Rectangle()
                     .stroke(Color.green, lineWidth: 3)
                     .frame(width: boxRect.width, height: boxRect.height)
                     .position(x: boxRect.midX, y: boxRect.midY)
 
-                // 4. 상단 알림 카드
                 VStack(alignment: .leading, spacing: 4) {
                     Text("촬영 완료")
                         .font(.custom("Pretendard-SemiBold", size: 18))
@@ -78,7 +66,6 @@ struct CapturedImageReviewView: View {
                     y: boxRect.minY - 56
                 )
 
-                // 5. 하단 버튼
                 VStack {
                     Spacer()
                     VStack(spacing: 10) {
@@ -93,14 +80,9 @@ struct CapturedImageReviewView: View {
                                 .foregroundStyle(.white)
                                 .clipShape(Capsule())
                         }
-<<<<<<< HEAD
-                        
-                        Button {GoRegister = true
-=======
 
                         Button {
                             goToRegistration = true
->>>>>>> f38d93b561f0bf401fd0c4727c837b4660591bc2
                         } label: {
                             Text("비밀번호 등록하러 가기")
                                 .font(.custom("Pretendard-SemiBold", size: 15))
@@ -110,20 +92,11 @@ struct CapturedImageReviewView: View {
                                 .foregroundStyle(.white)
                                 .clipShape(Capsule())
                         }
-<<<<<<< HEAD
-                        .navigationDestination(isPresented: $GoRegister) {
-                            DoorLockRegistrationView(
-                                cropimageData: croppedImage.jpegData(compressionQuality: 0.8)!,
-                                fullimageData:image.jpegData(compressionQuality: 0.8)!
-
-                                
-                            )
-=======
                         .navigationDestination(isPresented: $goToRegistration) {
-                                DoorLockRegistrationView(
-                                    imageData: image.jpegData(compressionQuality: 0.8)!
-                                )
->>>>>>> f38d93b561f0bf401fd0c4727c837b4660591bc2
+                            DoorLockRegistrationView(
+                                cropimageData: croppedImage.jpegData(compressionQuality: 0.8) ?? Data(),
+                                fullimageData: image.jpegData(compressionQuality: 0.8) ?? Data()
+                            )
                         }
                     }
                     .padding(.horizontal, 16)
@@ -132,6 +105,29 @@ struct CapturedImageReviewView: View {
             }
         }
         .ignoresSafeArea()
+    }
+
+    private func displayRect(for box: CGRect?, in size: CGSize) -> CGRect {
+        guard let box else { return guideRect(in: size) }
+        return screenRect(for: box, in: size)
+    }
+
+    private func screenRect(for box: CGRect, in size: CGSize) -> CGRect {
+        let imgSize = image.size
+        guard imgSize.width > 0, imgSize.height > 0 else { return guideRect(in: size) }
+
+        let scale = max(size.width / imgSize.width, size.height / imgSize.height)
+        let scaledWidth = imgSize.width * scale
+        let scaledHeight = imgSize.height * scale
+        let originX = (size.width - scaledWidth) / 2
+        let originY = (size.height - scaledHeight) / 2
+
+        return CGRect(
+            x: originX + box.minX * scaledWidth,
+            y: originY + box.minY * scaledHeight,
+            width: box.width * scaledWidth,
+            height: box.height * scaledHeight
+        )
     }
 
     private func guideRect(in size: CGSize) -> CGRect {
@@ -145,13 +141,12 @@ struct CapturedImageReviewView: View {
 }
 
 #Preview {
-    CapturedImageReviewView(
-        image: UIImage(named: "photo") ?? UIImage(),
-<<<<<<< HEAD
-        croppedImage: UIImage(named: "photo") ?? UIImage(),
-        boundingBox: CGRect(x: 0.2, y: 0.3, width: 0.6, height: 0.4),
-=======
->>>>>>> f38d93b561f0bf401fd0c4727c837b4660591bc2
-        onRetake: {}
-    )
+    NavigationStack {
+        CapturedImageReviewView(
+            image: UIImage(named: "photo") ?? UIImage(),
+            croppedImage: UIImage(named: "photo") ?? UIImage(),
+            boundingBox: CGRect(x: 0.2, y: 0.3, width: 0.6, height: 0.4),
+            onRetake: {}
+        )
+    }
 }
