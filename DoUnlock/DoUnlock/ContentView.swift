@@ -43,8 +43,8 @@ struct ContentView: View {
                 onboardingStep += 1
             }
         } else {
-            // 온보딩 완료 → 인식 화면. 가이드 박스·인식 로직은 ObjectRecongnitionView에서 구현 예정
-            ObjectRecongnitionView()
+            // 온보딩 완료 → 촬영/인식 화면 (팀원 정필규)
+            ObjectDetectView()
         }
     }
 

@@ -2,6 +2,9 @@ import SwiftUI
 
 struct RegistrationCompleteView: View {
     @Environment(\.dismiss) private var dismiss
+    let name: String
+    let category: String
+    let imageData : Data
 
     var body: some View {
         ZStack {
@@ -79,12 +82,13 @@ struct RegistrationCompleteView: View {
                 )
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("우리집")
+                Text(name)
                     .textStyle(.cardTitle)
                     .foregroundStyle(Color.textPrimary)
-                Text("1203호 · 현관문 오른쪽 도어락")
+                Text(category)
                     .textStyle(.cardSubtitle)
                     .foregroundStyle(Color.textMuted)
+
             }
 
             Spacer()
@@ -133,6 +137,6 @@ struct RegistrationCompleteView: View {
 
 #Preview {
     NavigationStack {
-        RegistrationCompleteView()
+        RegistrationCompleteView(name: "우리집", category: "도어락", imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!)
     }
 }

@@ -9,9 +9,11 @@ struct DoorLockRegistrationView: View {
     }
 
     let mode: Mode
-    /// 등록(create) 시 저장할 도어락 사진. 촬영 플로우(다른 팀원 담당)에서 캡처한 이미지를 넘겨받는다.
-    /// 이미지는 필수값 — 촬영 연결 전까지 호출부에서 임시 placeholder(Data())를 전달.
-    let imageData: Data
+    /// 촬영 플로우(다른 팀원 담당)에서 캡처한 크롭 이미지. create 시 저장/표시.
+    /// 촬영 연결 전 목록의 create 진입은 placeholder(Data())를 전달.
+    let cropimageData: Data
+    /// 원본 전체 이미지. 현재 미사용 — 추후 원본 저장용 seam.
+    let fullimageData: Data
 
     @State private var category: String
     @State private var name: String
@@ -23,9 +25,10 @@ struct DoorLockRegistrationView: View {
 
     private let categories = ["도어락", "자전거", "캐리어", "기타"]
 
-    init(mode: Mode = .create, imageData: Data = Data()) {
+    init(mode: Mode = .create, cropimageData: Data = Data(), fullimageData: Data = Data()) {
         self.mode = mode
-        self.imageData = imageData
+        self.cropimageData = cropimageData
+        self.fullimageData = fullimageData
         switch mode {
         case .create:
             _category = State(initialValue: "도어락")
@@ -75,8 +78,6 @@ struct DoorLockRegistrationView: View {
                     .padding(.top, 28)
                     .padding(.bottom, 100)
             }
-
-
             bottomButton
                 .padding(.horizontal, 16)
         }
@@ -88,7 +89,7 @@ struct DoorLockRegistrationView: View {
         }
         // create 모드: 저장(insert) 후 완료 화면으로 이동.
         .navigationDestination(isPresented: $didComplete) {
-            RegistrationCompleteView()
+            RegistrationCompleteView(name: name, category: category, imageData: cropimageData)
         }
     }
 
@@ -141,7 +142,7 @@ struct DoorLockRegistrationView: View {
     /// 표시할 사진. create는 넘겨받은 촬영 이미지, edit는 저장된 도어락 이미지.
     private var displayImageData: Data {
         switch mode {
-        case .create:          return imageData
+        case .create:          return cropimageData
         case .edit(let lock):  return lock.image
         }
     }
@@ -150,15 +151,12 @@ struct DoorLockRegistrationView: View {
         HStack {
             Spacer()
             ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.surface)
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.borderDefault, lineWidth: 1.5)
                 if let uiImage = UIImage(data: displayImageData) {
                     Image(uiImage: uiImage)
                         .resizable()
-                        .scaledToFill()
+                        .scaledToFit()
                 } else {
+                    Color.surface
                     Image(systemName: "camera.fill")
                         .foregroundStyle(Color.textPlaceholder)
                         .font(.system(size: 28))
@@ -166,6 +164,10 @@ struct DoorLockRegistrationView: View {
             }
             .frame(width: 174, height: 202)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.borderDefault, lineWidth: 1.5)
+            )
             Spacer()
         }
     }
@@ -210,6 +212,7 @@ struct DoorLockRegistrationView: View {
             
             TextField("아카데미 사물함", text: $name)
                 .textStyle(.fieldValue)
+                .foregroundStyle(Color.black)
                 .padding(.horizontal, 16)
                 .frame(height: 52)
                 .background(Color.surface)
@@ -229,6 +232,7 @@ struct DoorLockRegistrationView: View {
             
             SecureField("1234", text: $password)
                 .textStyle(.fieldValue)
+                .foregroundStyle(Color.black)
                 .padding(.horizontal, 16)
                 .frame(height: 52)
                 .background(Color.surface)
@@ -267,9 +271,9 @@ struct DoorLockRegistrationView: View {
     // MARK: - Helpers
 
     /// 등록 모드: 새 DoorLock을 저장소에 추가하고 완료 화면으로 이동.
-    /// 이미지 캡처는 인식 담당 영역 → 현재는 빈 Data() 플레이스홀더.
+    /// 이미지는 촬영 플로우에서 넘어온 크롭본(cropimageData). 촬영 미연결 진입은 빈 Data() 플레이스홀더.
     private func create() {
-        let lock = DoorLock(category: category, name: name, password: password, image: imageData)
+        let lock = DoorLock(category: category, name: name, password: password, image: cropimageData)
         modelContext.insert(lock)
         didComplete = true
     }
@@ -300,6 +304,11 @@ struct DoorLockRegistrationView: View {
 
 #Preview {
     NavigationStack {
-        DoorLockRegistrationView()
+        DoorLockRegistrationView(
+            cropimageData:UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!,
+
+            fullimageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!
+            
+        )
     }
 }
