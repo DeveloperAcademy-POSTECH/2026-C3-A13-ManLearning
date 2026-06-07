@@ -11,15 +11,18 @@ import UIKit
 
 struct CaptureReviewData: Identifiable {
     let id = UUID()
+<<<<<<< HEAD:DoUnlock/DoUnlock/ObjectDetectView.swift
     let fullImage: UIImage
     let croppedImage: UIImage
     let boundingBox: CGRect?
+=======
+    let image: UIImage
+>>>>>>> f38d93b561f0bf401fd0c4727c837b4660591bc2:DoUnlock/DoUnlock/ObjectRecongnitionView.swift
 }
 
 final class DetectionViewModel: ObservableObject {
     @Published var guideStatus: StrokeColor = .idle
     @Published var latestConfidence: Float? = nil
-    @Published var latestDetection: Detection? = nil
 
     private let detector: YOLODetector?
     private let qualityAnalyzer = CropQualityAnalyzer()
@@ -58,22 +61,18 @@ final class DetectionViewModel: ObservableObject {
             guard let self else { return }
             let detected: Bool
             let confidence: Float?
-            let detection: Detection?
             if case .success(let found) = result {
                 detected = !found.isEmpty
                 confidence = found.first?.confidence
-                detection = found.first
             } else {
                 detected = false
                 confidence = nil
-                detection = nil
             }
 
             DispatchQueue.main.async {
                 self.isProcessing = false
                 self.isDetected = detected
                 self.latestConfidence = confidence
-                self.latestDetection = detection
                 self.updateStatus()
             }
         }
@@ -129,7 +128,6 @@ final class DetectionViewModel: ObservableObject {
         detectionStartTime = nil
         lastDetectionTime = nil
         passLostTime = nil
-        latestDetection = nil
         latestConfidence = nil
         qualityAnalyzer.reset()
         errorTimer?.invalidate()
@@ -150,6 +148,7 @@ struct ObjectDetectView: View {
                 pixelHandler: { pixelBuffer, _ in
                     viewModel.process(pixelBuffer: pixelBuffer)
                 },
+<<<<<<< HEAD:DoUnlock/DoUnlock/ObjectDetectView.swift
                 imageHandler: { fullImage, croppedImage in
                     let box = viewModel.latestDetection?.boundingBox
                     DispatchQueue.main.async {
@@ -157,6 +156,11 @@ struct ObjectDetectView: View {
                             fullImage: fullImage,
                             croppedImage: croppedImage,
                             boundingBox: box)
+=======
+                imageHandler: { image in
+                    DispatchQueue.main.async {
+                        reviewData = CaptureReviewData(image: image)
+>>>>>>> f38d93b561f0bf401fd0c4727c837b4660591bc2:DoUnlock/DoUnlock/ObjectRecongnitionView.swift
                     }
                 }
             )
@@ -212,9 +216,13 @@ struct ObjectDetectView: View {
         .animation(.easeInOut(duration: 0.3), value: viewModel.guideStatus == .pass)
         .fullScreenCover(item: $reviewData) { data in
             CapturedImageReviewView(
+<<<<<<< HEAD:DoUnlock/DoUnlock/ObjectDetectView.swift
                 image: data.fullImage,
                 croppedImage: data.croppedImage,
                 boundingBox: data.boundingBox,
+=======
+                image: data.image,
+>>>>>>> f38d93b561f0bf401fd0c4727c837b4660591bc2:DoUnlock/DoUnlock/ObjectRecongnitionView.swift
                 onRetake: {
                     reviewData = nil
                     viewModel.reset()
