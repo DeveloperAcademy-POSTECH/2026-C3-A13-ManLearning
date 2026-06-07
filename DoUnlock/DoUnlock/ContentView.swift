@@ -10,11 +10,26 @@ import AVFoundation
 import LocalAuthentication
 
 struct ContentView: View {
+    // ⚠️ 임시(테스트용): true면 권한/온보딩을 건너뛰고 도어락 목록부터 시작해
+    // 목록 → 정보 수정 흐름을 시뮬레이터/실기기에서 바로 확인할 수 있다.
+    // 테스트가 끝나면 false로 되돌릴 것.
+    private let showDoorLockListForTesting = true
+
     @State private var hasGrantedPermissions = false
     @State private var onboardingStep = 0
-    @State private var cameraStatus: StrokeColor = .idle
 
     var body: some View {
+        if showDoorLockListForTesting {
+            NavigationStack {
+                DoorLockListView()
+            }
+        } else {
+            mainFlow
+        }
+    }
+
+    @ViewBuilder
+    private var mainFlow: some View {
         if !hasGrantedPermissions {
             PermissionSetupView {
                 requestPermissions()
@@ -28,22 +43,8 @@ struct ContentView: View {
                 onboardingStep += 1
             }
         } else {
-            ZStack {
-                CameraPreviewView(
-                    isActive: true,
-                    captureImageTrigger: false,
-                    pixelHandler: { pixelBuffer, cropRect in
-                        // 실시간 비교용
-                    },
-                    imageHandler: { image in
-                        // 캡처 이미지 처리용
-                    }
-                )
-                .ignoresSafeArea()
-
-                CameraGuideOverlay(status: $cameraStatus)
-                    .ignoresSafeArea()
-            }
+            // 온보딩 완료 → 인식 화면. 가이드 박스·인식 로직은 ObjectRecongnitionView에서 구현 예정
+            ObjectRecongnitionView()
         }
     }
 
