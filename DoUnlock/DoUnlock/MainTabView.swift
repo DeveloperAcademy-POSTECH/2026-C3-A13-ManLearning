@@ -20,7 +20,7 @@ struct MainTabView: View {
             NavigationStack {
                 ObjectDetectView()
             }
-            .tabItem { Label("scan", systemImage: "viewfinder") }
+            .tabItem { Label("scan", systemImage: "camera.fill") }
             .tag(AppRouter.Tab.scan)
 
             // 도어락 목록 (Figma: 자물쇠 + password)

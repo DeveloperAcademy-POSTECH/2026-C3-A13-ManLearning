@@ -2,6 +2,7 @@ import SwiftUI
 
 struct RegistrationCompleteView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppRouter.self) private var router
     let name: String
     let category: String
     let imageData : Data
@@ -109,7 +110,8 @@ struct RegistrationCompleteView: View {
     private var actionButtons: some View {
         VStack(spacing: 8) {
             Button {
-                dismiss()
+                // 촬영 cover를 닫고 목록(password) 탭으로 전환. cover는 ObjectDetectView가 소유하므로 신호로 위임.
+                router.finishCaptureFlowRequested = true
             } label: {
                 Text("등록된 목록 확인하기")
                     .textStyle(.buttonLarge)
@@ -139,4 +141,5 @@ struct RegistrationCompleteView: View {
     NavigationStack {
         RegistrationCompleteView(name: "우리집", category: "도어락", imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!)
     }
+    .environment(AppRouter())
 }
