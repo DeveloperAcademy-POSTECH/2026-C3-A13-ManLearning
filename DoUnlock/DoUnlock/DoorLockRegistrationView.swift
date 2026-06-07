@@ -79,10 +79,10 @@ struct DoorLockRegistrationView: View {
         HStack {
             Spacer()
             ZStack {
-                if let uiImage = UIImage(data: fullimageData) {
+                if let uiImage = UIImage(data: cropimageData) {
                     Image(uiImage: uiImage)
                         .resizable()
-                        .scaledToFill()
+                        .scaledToFit()
                 } else {
                     Color.surface
                     Image(systemName: "camera.fill")
@@ -140,6 +140,7 @@ struct DoorLockRegistrationView: View {
             
             TextField("아카데미 사물함", text: $name)
                 .textStyle(.fieldValue)
+                .foregroundStyle(Color.black)
                 .padding(.horizontal, 16)
                 .frame(height: 52)
                 .background(Color.surface)
@@ -159,6 +160,7 @@ struct DoorLockRegistrationView: View {
             
             SecureField("1234", text: $password)
                 .textStyle(.fieldValue)
+                .foregroundStyle(Color.black)
                 .padding(.horizontal, 16)
                 .frame(height: 52)
                 .background(Color.surface)
