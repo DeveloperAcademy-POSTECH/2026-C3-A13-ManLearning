@@ -139,6 +139,7 @@ final class DetectionViewModel: ObservableObject {
 
 struct ObjectDetectView: View {
     @StateObject private var viewModel = DetectionViewModel()
+    @Environment(AppRouter.self) private var router
     @State private var captureTriggered = false
     @State private var reviewData: CaptureReviewData?
 
@@ -200,6 +201,14 @@ struct ObjectDetectView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.guideStatus == .pass)
+        // 등록 완료 화면 "목록 확인하기" → cover를 닫고 목록(password) 탭으로 전환.
+        .onChange(of: router.finishCaptureFlowRequested) { _, requested in
+            guard requested else { return }
+            reviewData = nil
+            viewModel.reset()
+            router.selectedTab = .password
+            router.finishCaptureFlowRequested = false
+        }
         .fullScreenCover(item: $reviewData) { data in
             NavigationStack {
                 CapturedImageReviewView(
@@ -222,4 +231,5 @@ struct ObjectDetectView: View {
 
 #Preview {
     ObjectDetectView()
+        .environment(AppRouter())
 }

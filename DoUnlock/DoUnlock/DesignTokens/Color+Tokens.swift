@@ -29,6 +29,9 @@ extension Color {
     // MARK: - Border / Divider
     static let borderDefault     = Color(hex: 0xE5E7EB)
 
+    // MARK: - Progress
+    static let progressTrack     = Color(hex: 0xD9D9D9)   // 진행바 비활성 트랙
+
     // MARK: - Info notice
     static let infoBg            = Color(hex: 0xEEF0FF)
     static let infoBorder        = Color(hex: 0xD1D9FA)
@@ -37,10 +40,16 @@ extension Color {
     // MARK: - Status
     static let successBg         = Color(hex: 0xDCFCE7)
     static let successFg         = Color(hex: 0x16A34A)
+    static let destructiveBg     = Color(hex: 0xFF383C, opacity: 0.14)  // "나중에" 등 거절 버튼 배경
+    static let destructiveFg     = Color(hex: 0xFF383C)                 // 거절 버튼 텍스트
 
     // MARK: - Door lock icon gradient
     static let lockIconStart     = Color(hex: 0x12122A)
     static let lockIconEnd       = Color(hex: 0x1A1838)
+
+    // MARK: - Door lock card thumbnail (사진 없을 때 placeholder)
+    static let lockBadgeBg       = Color(hex: 0x161530)   // 배경
+    static let lockBadgeIcon     = Color(hex: 0x6B7BF7)   // 자물쇠 글리프
 
     // MARK: - hex initializer
     private init(hex: UInt32, opacity: Double = 1) {
