@@ -9,6 +9,8 @@ import SwiftUI
 import UIKit
 
 struct CapturedImageReviewView: View {
+    @State private var goToRegistration = false
+    
     let image: UIImage
     let onRetake: () -> Void
 
@@ -83,6 +85,7 @@ struct CapturedImageReviewView: View {
                         }
 
                         Button {
+                            goToRegistration = true
                         } label: {
                             Text("비밀번호 등록하러 가기")
                                 .font(.custom("Pretendard-SemiBold", size: 15))
@@ -91,6 +94,11 @@ struct CapturedImageReviewView: View {
                                 .background(Color.brandPrimary)
                                 .foregroundStyle(.white)
                                 .clipShape(Capsule())
+                        }
+                        .navigationDestination(isPresented: $goToRegistration) {
+                                DoorLockRegistrationView(
+                                    imageData: image.jpegData(compressionQuality: 0.8)!
+                                )
                         }
                     }
                     .padding(.horizontal, 16)
