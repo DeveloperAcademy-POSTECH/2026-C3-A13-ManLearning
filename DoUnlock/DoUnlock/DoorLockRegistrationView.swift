@@ -1,27 +1,33 @@
 import SwiftUI
+import SwiftData
 
 struct DoorLockRegistrationView: View {
+    // ==== Nearby ViewModel (DoorLockListView 에서 environmentObject 로 주입)
+    @EnvironmentObject private var nearbyVM: NearbyViewModel
     /// 등록(create) / 수정(edit) 겸용. 기본값 `.create`라 기존 `DoorLockRegistrationView()` 호출부는 그대로 동작.
     enum Mode {
         case create
-        case edit(DoorLockDraft)
+        case edit(DoorLock)
     }
 
     let mode: Mode
-    /// 수정 저장 콜백. SwiftData 머지 전 인메모리 목록 갱신용 (자세한 내용은 DoorLock/INTEGRATION.md).
-    var onSave: ((DoorLockDraft) -> Void)?
+    /// 등록(create) 시 저장할 도어락 사진. 촬영 플로우(다른 팀원 담당)에서 캡처한 이미지를 넘겨받는다.
+    /// 이미지는 필수값 — 촬영 연결 전까지 호출부에서 임시 placeholder(Data())를 전달.
+    let imageData: Data
 
     @State private var category: String
     @State private var name: String
     @State private var password: String
     @State private var showShareSheet = false
+    @State private var didComplete = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
 
     private let categories = ["도어락", "자전거", "캐리어", "기타"]
 
-    init(mode: Mode = .create, onSave: ((DoorLockDraft) -> Void)? = nil) {
+    init(mode: Mode = .create, imageData: Data = Data()) {
         self.mode = mode
-        self.onSave = onSave
+        self.imageData = imageData
         switch mode {
         case .create:
             _category = State(initialValue: "도어락")
@@ -77,10 +83,16 @@ struct DoorLockRegistrationView: View {
                 .padding(.horizontal, 16)
         }
         .navigationBarHidden(true)
+        // ==== 공유 시트: 현재 도어락 + nearbyVM 전달
         .sheet(isPresented: $showShareSheet) {
-            DeviceShareSheet()
+            DeviceShareSheet(lock: lockForSharing)
+                .environmentObject(nearbyVM)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+        }
+        // create 모드: 저장(insert) 후 완료 화면으로 이동.
+        .navigationDestination(isPresented: $didComplete) {
+            RegistrationCompleteView()
         }
     }
 
@@ -90,7 +102,9 @@ struct DoorLockRegistrationView: View {
     private var bottomButton: some View {
         switch mode {
         case .create:
-            NavigationLink(destination: RegistrationCompleteView()) {
+            Button {
+                create()
+            } label: {
                 bottomButtonLabel("등록 완료하기")
             }
         case .edit:
@@ -128,6 +142,14 @@ struct DoorLockRegistrationView: View {
         }
     }
     
+    /// 표시할 사진. create는 넘겨받은 촬영 이미지, edit는 저장된 도어락 이미지.
+    private var displayImageData: Data {
+        switch mode {
+        case .create:          return imageData
+        case .edit(let lock):  return lock.image
+        }
+    }
+
     private var imagePlaceholder: some View {
         HStack {
             Spacer()
@@ -136,11 +158,18 @@ struct DoorLockRegistrationView: View {
                     .fill(Color.surface)
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.borderDefault, lineWidth: 1.5)
-                Image(systemName: "camera.fill")
-                    .foregroundStyle(Color.textPlaceholder)
-                    .font(.system(size: 28))
+                if let uiImage = UIImage(data: displayImageData) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                } else {
+                    Image(systemName: "camera.fill")
+                        .foregroundStyle(Color.textPlaceholder)
+                        .font(.system(size: 28))
+                }
             }
             .frame(width: 174, height: 202)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
             Spacer()
         }
     }
@@ -241,15 +270,27 @@ struct DoorLockRegistrationView: View {
     
     // MARK: - Helpers
 
-    /// 수정 모드 저장. 원본의 id/createAt/image는 보존하고 입력값만 갱신, updateAt은 현재로.
+    // ==== 공유용 NearbyPacket (현재 폼 입력값 기준 — 미저장 상태도 공유 가능, DoorLockDraft 제거)
+    private var lockForSharing: NearbyPacket {
+        return NearbyPacket(category: category, name: name, password: password)
+    }
+
+    /// 등록 모드: 새 DoorLock을 저장소에 추가하고 완료 화면으로 이동.
+    /// 이미지 캡처는 인식 담당 영역 → 현재는 빈 Data() 플레이스홀더.
+    private func create() {
+        let lock = DoorLock(category: category, name: name, password: password, image: imageData)
+        modelContext.insert(lock)
+        didComplete = true
+    }
+
+    /// 수정 모드 저장. DoorLock은 참조 타입이라 객체를 직접 수정하면 SwiftData가 autosave.
+    /// id/createAt/image는 보존하고 입력값만 갱신, updateAt은 현재로(목록 날짜 라벨 기준).
     private func save() {
         guard case .edit(let lock) = mode else { return }
-        var updated = lock
-        updated.category = category
-        updated.name = name
-        updated.password = password
-        updated.updateAt = .now
-        onSave?(updated)
+        lock.category = category
+        lock.name = name
+        lock.password = password
+        lock.updateAt = .now
     }
 
     @ViewBuilder
@@ -267,7 +308,9 @@ struct DoorLockRegistrationView: View {
 }
 
 #Preview {
+    // ==== 프리뷰: nearbyVM 주입 필요
     NavigationStack {
         DoorLockRegistrationView()
+            .environmentObject(NearbyViewModel())
     }
 }

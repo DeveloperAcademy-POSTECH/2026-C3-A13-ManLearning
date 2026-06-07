@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DoorLockCard: View {
-    let lock: DoorLockDraft
+    let lock: DoorLock
 
     var body: some View {
         HStack(spacing: 20) {
@@ -65,7 +65,7 @@ struct DoorLockCard: View {
 }
 
 #Preview {
-    DoorLockCard(lock: DoorLockDraft.sampleData[0])
+    DoorLockCard(lock: DoorLock(category: "도어락", name: "우리집", password: "1234", image: Data()))
         .padding()
         .background(Color.screenBg)
 }
