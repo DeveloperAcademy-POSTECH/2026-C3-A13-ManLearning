@@ -11,10 +11,8 @@ struct DoorLockListView: View {
     // 데이터 seam: 추후 팀원 SwiftData 머지 시 `@Query private var locks: [DoorLock]`로 교체.
     @State private var locks: [DoorLockDraft] = DoorLockDraft.sampleData
 
-    #if DEBUG
-    // 임시: 수신 시트(ShareReceiveSheet) 검증용. 실제 근거리 통신 수신 로직 붙이면 제거.
-    @State private var showReceiveSheet = false
-    #endif
+    // ==== Nearby ViewModel — 광고(수신측)와 수신 시트 표시를 담당
+    @StateObject private var nearbyVM = NearbyViewModel()
 
     var body: some View {
         ZStack {
@@ -30,11 +28,13 @@ struct DoorLockListView: View {
                     LazyVStack(spacing: 20) {
                         ForEach(locks) { lock in
                             NavigationLink {
+                                // ==== nearbyVM 을 하위 뷰에 전달 (공유 버튼 연결용)
                                 DoorLockRegistrationView(mode: .edit(lock)) { updated in
                                     if let idx = locks.firstIndex(where: { $0.id == updated.id }) {
                                         locks[idx] = updated
                                     }
                                 }
+                                .environmentObject(nearbyVM)
                             } label: {
                                 DoorLockCard(lock: lock)
                             }
@@ -51,8 +51,8 @@ struct DoorLockListView: View {
             }
 
             #if DEBUG
-            // 임시 검증 트리거. 실제 수신 로직 붙이면 이 블록 통째로 제거.
-            Button("수신 시트") { showReceiveSheet = true }
+            // ==== 수신 시트 수동 트리거 (디버그 전용)
+            Button("수신 시트") { nearbyVM.showReceiveSheet = true }
                 .font(.caption)
                 .padding(8)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
@@ -60,13 +60,22 @@ struct DoorLockListView: View {
         }
         // 화면 자체 헤더("등록된 도어락 목록")가 있으므로 NavigationStack 기본 바와 중복 방지.
         .toolbar(.hidden, for: .navigationBar)
-        #if DEBUG
-        .sheet(isPresented: $showReceiveSheet) {
-            ShareReceiveSheet()
-                .presentationDetents([.height(490)]) // Figma 박스(484) ≈ 화면 중간, 단일 detent라 더 못 올라감
-                .presentationDragIndicator(.visible)
+        // ==== Nearby: 화면 진입 시 광고 시작 (수신측 역할)
+        .onAppear   { nearbyVM.startAdvertising() }
+        .onDisappear { nearbyVM.stopAdvertising() }
+        // ==== Nearby: 데이터 수신 시 수신 시트 표시
+        .sheet(isPresented: $nearbyVM.showReceiveSheet, onDismiss: {
+            nearbyVM.receivedLock = nil   // 드래그 닫기 시에도 상태 정리
+        }) {
+            ShareReceiveSheet(
+                nearbyVM: nearbyVM,
+                onAccept: { newLock in
+                    locks.append(newLock) // ==== 수락된 도어락을 목록에 추가
+                }
+            )
+            .presentationDetents([.height(490)]) // Figma 박스(484) ≈ 화면 중간, 단일 detent라 더 못 올라감
+            .presentationDragIndicator(.visible)
         }
-        #endif
     }
 
     // MARK: - Sub views
@@ -74,7 +83,9 @@ struct DoorLockListView: View {
     private var registerButton: some View {
         NavigationLink {
             // 등록(create) 모드. 완료 시 기존 RegistrationCompleteView 플로우 유지.
+            // ==== nearbyVM 전달 (create 모드에서는 공유 버튼 숨김이지만 일관성 유지)
             DoorLockRegistrationView(mode: .create)
+                .environmentObject(nearbyVM)
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "plus")

@@ -6,11 +6,10 @@
 //  도어락 정보 수정 화면 우상단 공유 버튼에서 아래에서 위로 올라옵니다.
 //  기기 카드를 탭하면 같은 시트가 "전송 완료" 상태로 전환됩니다(목업).
 //
-//  ⚠️ 표시 기기는 실제 통신이 아닌 임시(stand-in) 목업입니다.
-//  추후 근거리 통신(MultipeerConnectivity 등)을 붙이면 `ShareDevice.sampleData`를
-//  실제 탐색된 기기 목록으로 교체하면 됩니다. (DoorLockDraft seam과 같은 패턴)
+//  실제 근거리 통신(MultipeerConnectivity)이 NearbyViewModel 을 통해 연결됩니다.
 //
 
+import MultipeerConnectivity
 import SwiftUI
 
 struct ShareDevice: Identifiable {
@@ -32,10 +31,10 @@ extension ShareDevice {
 }
 
 struct DeviceShareSheet: View {
-    private let devices: [ShareDevice] = ShareDevice.sampleData
-    /// 전송한 기기. nil이면 목록, 값이 있으면 전송 완료 상태.
-    /// 실제 통신 미구현 — 탭 즉시 설정하는 목업. 추후 로직 붙일 때 이 설정 지점이 seam.
-    @State private var sentDevice: ShareDevice?
+    // ==== 전송할 도어락 (DoorLockRegistrationView 에서 전달)
+    let lock: DoorLockDraft
+    // ==== Nearby ViewModel (environmentObject 로 주입)
+    @EnvironmentObject private var nearbyVM: NearbyViewModel
 
     var body: some View {
         VStack(spacing: 0) {
@@ -44,14 +43,16 @@ struct DeviceShareSheet: View {
                 .foregroundStyle(Color.textPrimary)
                 .padding(.top, 20)
 
-            if sentDevice != nil {
+            // ==== isSendComplete 로 완료 상태 전환 (기존 sentDevice 역할)
+            if nearbyVM.isSendComplete {
                 DeviceShareCompleteView()
             } else {
                 ScrollView {
                     VStack(spacing: 23) {
-                        ForEach(devices) { device in
-                            ShareDeviceCard(device: device) {
-                                withAnimation { sentDevice = device }
+                        // ==== 실제 발견된 피어 목록 표시
+                        ForEach(nearbyVM.discoveredPeers, id: \.self) { peer in
+                            ShareDeviceCard(peer: peer) {
+                                withAnimation { nearbyVM.sendLock(lock, to: peer) }
                             }
                         }
                     }
@@ -62,12 +63,18 @@ struct DeviceShareSheet: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.surface)
+        // ==== 시트 열릴 때 탐색 시작, 닫힐 때 정리
+        .onAppear   { nearbyVM.startBrowsing() }
+        .onDisappear {
+            nearbyVM.stopBrowsing()
+            nearbyVM.isSendComplete = false  // ==== 다음 열기 시 초기화
+        }
     }
 }
 
 struct ShareDeviceCard: View {
-    let device: ShareDevice
-    /// 탭 시 해당 기기로 전송(현재 목업). DoorLockListView의 .buttonStyle(.plain) 패턴과 동일.
+    // ==== MCPeerID 로 변경 (기존 ShareDevice 대체)
+    let peer:  MCPeerID
     var onTap: () -> Void
 
     var body: some View {
@@ -76,7 +83,8 @@ struct ShareDeviceCard: View {
                 deviceBadge
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(device.name)
+                    // ==== peer.displayName 사용
+                    Text(peer.displayName)
                         .textStyle(.cardTitle)
                         .foregroundStyle(Color.textPrimary)
                     Text("도어락 정보 공유")
@@ -152,7 +160,9 @@ struct DeviceShareCompleteView: View {
 }
 
 #Preview("Sheet") {
-    DeviceShareSheet()
+    // ==== 프리뷰: 목업 VM 주입
+    DeviceShareSheet(lock: DoorLockDraft.sampleData[0])
+        .environmentObject(NearbyViewModel())
 }
 
 #Preview("Complete") {
@@ -161,7 +171,8 @@ struct DeviceShareCompleteView: View {
 }
 
 #Preview("Card") {
-    ShareDeviceCard(device: ShareDevice.sampleData[0]) {}
+    // ==== 프리뷰: MCPeerID 직접 생성
+    ShareDeviceCard(peer: MCPeerID(displayName: "iPhone Air")) {}
         .padding()
         .background(Color.screenBg)
 }

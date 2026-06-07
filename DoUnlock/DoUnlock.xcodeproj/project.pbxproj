@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		937DCF5C2FD57491009B91CE /* MultipeerConnectivity.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 937DCF5B2FD57491009B91CE /* MultipeerConnectivity.framework */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
-		CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		937DCF152FD56ECC009B91CE /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		937DCF5B2FD57491009B91CE /* MultipeerConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultipeerConnectivity.framework; path = System/Library/Frameworks/MultipeerConnectivity.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -36,16 +41,27 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				937DCF5C2FD57491009B91CE /* MultipeerConnectivity.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		937DCF5A2FD57491009B91CE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				937DCF5B2FD57491009B91CE /* MultipeerConnectivity.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		CBCAAF3C2FC8ABB8008EB235 = {
 			isa = PBXGroup;
 			children = (
 				CBCAAFD12FCD53B7008EB235 /* DoUnlock */,
+				937DCF152FD56ECC009B91CE /* DoUnlock.app */,
+				937DCF5A2FD57491009B91CE /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -71,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = DoUnlock;
-			productReference = CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */;
+			productReference = 937DCF152FD56ECC009B91CE /* DoUnlock.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -262,7 +278,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DoUnlock/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "앱을 사용하기 위해서는 Face ID 인증이 필요합니다";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "비밀번호를 본인에게만 보여주기 위해 필요해요";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "주변 기기와 도어락 정보를 공유하기 위해 근거리 네트워크 접근이 필요해요";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -306,7 +323,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = DoUnlock/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "";
-				INFOPLIST_KEY_NSFaceIDUsageDescription = "앱을 사용하기 위해서는 Face ID 인증이 필요합니다";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "비밀번호를 본인에게만 보여주기 위해 필요해요";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "주변 기기와 도어락 정보를 공유하기 위해 근거리 네트워크 접근이 필요해요";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct DoorLockRegistrationView: View {
+    // ==== Nearby ViewModel (DoorLockListView 에서 environmentObject 로 주입)
+    @EnvironmentObject private var nearbyVM: NearbyViewModel
     /// 등록(create) / 수정(edit) 겸용. 기본값 `.create`라 기존 `DoorLockRegistrationView()` 호출부는 그대로 동작.
     enum Mode {
         case create
@@ -77,8 +79,10 @@ struct DoorLockRegistrationView: View {
                 .padding(.horizontal, 16)
         }
         .navigationBarHidden(true)
+        // ==== 공유 시트: 현재 도어락 + nearbyVM 전달
         .sheet(isPresented: $showShareSheet) {
-            DeviceShareSheet()
+            DeviceShareSheet(lock: lockForSharing)
+                .environmentObject(nearbyVM)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
@@ -241,6 +245,18 @@ struct DoorLockRegistrationView: View {
     
     // MARK: - Helpers
 
+    // ==== 공유용 DoorLockDraft 생성 (수정 모드 기준, 현재 입력값 반영)
+    private var lockForSharing: DoorLockDraft {
+        guard case .edit(let original) = mode else {
+            return DoorLockDraft(name: name)
+        }
+        var draft    = original
+        draft.name     = name
+        draft.category = category
+        draft.password = password
+        return draft
+    }
+
     /// 수정 모드 저장. 원본의 id/createAt/image는 보존하고 입력값만 갱신, updateAt은 현재로.
     private func save() {
         guard case .edit(let lock) = mode else { return }
@@ -267,7 +283,9 @@ struct DoorLockRegistrationView: View {
 }
 
 #Preview {
+    // ==== 프리뷰: nearbyVM 주입 필요
     NavigationStack {
         DoorLockRegistrationView()
+            .environmentObject(NearbyViewModel())
     }
 }
