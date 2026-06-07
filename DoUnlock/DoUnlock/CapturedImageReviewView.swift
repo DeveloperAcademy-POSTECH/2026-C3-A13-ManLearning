@@ -10,11 +10,13 @@ import UIKit
 
 struct CapturedImageReviewView: View {
     let image: UIImage
+    let croppedImage: UIImage
     let boundingBox: CGRect?   // normalized (0-1), origin top-left, from YOLO
     let onRetake: () -> Void
-
+    
     private let fallbackWidthRatio: CGFloat = 0.63
     private let fallbackHeightRatio: CGFloat = 0.45
+    @State var GoRegister: Bool = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -82,8 +84,8 @@ struct CapturedImageReviewView: View {
                                 .foregroundStyle(.white)
                                 .clipShape(Capsule())
                         }
-
-                        Button {
+                        
+                        Button {GoRegister = true
                         } label: {
                             Text("비밀번호 등록하러 가기")
                                 .font(.custom("Pretendard-SemiBold", size: 15))
@@ -92,6 +94,14 @@ struct CapturedImageReviewView: View {
                                 .background(Color.brandPrimary)
                                 .foregroundStyle(.white)
                                 .clipShape(Capsule())
+                        }
+                        .navigationDestination(isPresented: $GoRegister) {
+                            DoorLockRegistrationView(
+                                cropimageData: croppedImage.jpegData(compressionQuality: 0.8)!,
+                                fullimageData:image.jpegData(compressionQuality: 0.8)!
+
+                                
+                            )
                         }
                     }
                     .padding(.horizontal, 16)
@@ -137,6 +147,7 @@ struct CapturedImageReviewView: View {
 #Preview {
     CapturedImageReviewView(
         image: UIImage(named: "photo") ?? UIImage(),
+        croppedImage: UIImage(named: "photo") ?? UIImage(),
         boundingBox: CGRect(x: 0.2, y: 0.3, width: 0.6, height: 0.4),
         onRetake: {}
     )

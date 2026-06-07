@@ -16,8 +16,7 @@ struct CameraPreviewView: UIViewRepresentable {
     let isActive: Bool    // true이면 라이브 프리뷰 세션을 실행, false이면 카메라 장치 점유를 해제
     let captureImageTrigger: Bool
     let pixelHandler: (CVPixelBuffer, CGRect) -> Void
-    let imageHandler: (UIImage) -> Void
-
+    let imageHandler: (UIImage, UIImage) -> Void
 
     func makeUIView(context: Context) -> PreviewView {
         // AVCaptureVideoPreviewLayer를 가진 UIView를 만들고 coordinator가 세션을 연결합니다.
@@ -99,7 +98,7 @@ final class PreviewView: UIView {
 final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     private var pixelHandler: ((CVPixelBuffer, CGRect) -> Void)?
-    private var imageHandler: ((UIImage) -> Void)?
+    private var imageHandler: ((UIImage, UIImage) -> Void)?
     private var normalizedGuideRect: CGRect?
 
 
@@ -140,7 +139,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         for view: PreviewView,
         captureImageTrigger: Bool,
         pixelHandler: @escaping (CVPixelBuffer, CGRect) -> Void,
-        imageHandler: @escaping (UIImage) -> Void,
+        imageHandler: @escaping (UIImage, UIImage) -> Void,
         isActive: Bool
     ) {
         self.isActive = isActive
@@ -167,7 +166,7 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         isActive: Bool,
         captureImageTrigger: Bool,
         pixelHandler: @escaping (CVPixelBuffer, CGRect) -> Void,
-        imageHandler: @escaping (UIImage) -> Void
+        imageHandler: @escaping (UIImage, UIImage) -> Void,
     ) {
         self.pixelHandler = pixelHandler
         self.imageHandler = imageHandler
@@ -330,15 +329,15 @@ final class CameraCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDel
         if shouldCaptureImage {
             shouldCaptureImage = false
 
-            if let image = makeFullImage(from: pixelBuffer) {
-                imageHandler?(image)
+            guard
+                let fullImage = makeFullImage(from: pixelBuffer),
+                let croppedImage = makeCroppedImage(from: pixelBuffer, cropRect: cropRect)
+            else {
+                return
             }
+
+            imageHandler?(fullImage, croppedImage)
         }
-        //화면 출력용 전체 이미지 생성
-        else if shouldCaptureFullImage{
-            if let image = makeFullImage(from: pixelBuffer) {
-                imageHandler?(image)
-            }
-        }
+
     }
 }

@@ -11,7 +11,8 @@ import UIKit
 
 struct CaptureReviewData: Identifiable {
     let id = UUID()
-    let image: UIImage
+    let fullImage: UIImage
+    let croppedImage: UIImage
     let boundingBox: CGRect?
 }
 
@@ -136,7 +137,7 @@ final class DetectionViewModel: ObservableObject {
     }
 }
 
-struct ObjectRecongnitionView: View {
+struct ObjectDetectView: View {
     @StateObject private var viewModel = DetectionViewModel()
     @State private var captureTriggered = false
     @State private var reviewData: CaptureReviewData?
@@ -149,10 +150,13 @@ struct ObjectRecongnitionView: View {
                 pixelHandler: { pixelBuffer, _ in
                     viewModel.process(pixelBuffer: pixelBuffer)
                 },
-                imageHandler: { image in
+                imageHandler: { fullImage, croppedImage in
                     let box = viewModel.latestDetection?.boundingBox
                     DispatchQueue.main.async {
-                        reviewData = CaptureReviewData(image: image, boundingBox: box)
+                        reviewData = CaptureReviewData(
+                            fullImage: fullImage,
+                            croppedImage: croppedImage,
+                            boundingBox: box)
                     }
                 }
             )
@@ -208,7 +212,8 @@ struct ObjectRecongnitionView: View {
         .animation(.easeInOut(duration: 0.3), value: viewModel.guideStatus == .pass)
         .fullScreenCover(item: $reviewData) { data in
             CapturedImageReviewView(
-                image: data.image,
+                image: data.fullImage,
+                croppedImage: data.croppedImage,
                 boundingBox: data.boundingBox,
                 onRetake: {
                     reviewData = nil
@@ -220,5 +225,5 @@ struct ObjectRecongnitionView: View {
 }
 
 #Preview {
-    ObjectRecongnitionView()
+    ObjectDetectView()
 }

@@ -7,8 +7,8 @@ struct DoorLockRegistrationView: View {
     @State private var name = ""
     @State private var password = ""
     @State private var isRegistrationComplete = false
-    let imageData: Data
-    
+    let cropimageData: Data
+    let fullimageData: Data
     @Environment(\.dismiss) private var dismiss
     
     private let categories = ["도어락", "자전거", "캐리어", "기타"]
@@ -57,7 +57,7 @@ struct DoorLockRegistrationView: View {
                     .clipShape(Capsule())
             }
             .navigationDestination(isPresented: $isRegistrationComplete) {
-                RegistrationCompleteView(name: name, category: category, imageData: imageData)
+                RegistrationCompleteView(name: name, category: category, imageData: cropimageData)
             }
             .padding(.horizontal, 16)
         }
@@ -79,7 +79,7 @@ struct DoorLockRegistrationView: View {
         HStack {
             Spacer()
             ZStack {
-                if let uiImage = UIImage(data: imageData) {
+                if let uiImage = UIImage(data: fullimageData) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFill()
@@ -200,7 +200,7 @@ struct DoorLockRegistrationView: View {
             category :category,
             name: name,
             password: password,
-            image: imageData
+            image: cropimageData
         )
         modelContext.insert(newDoorLock)
     }
@@ -224,7 +224,10 @@ struct DoorLockRegistrationView: View {
 #Preview {
     NavigationStack {
         DoorLockRegistrationView(
-            imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!
+            cropimageData:UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!,
+
+            fullimageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!
+            
         )
     }
 }
