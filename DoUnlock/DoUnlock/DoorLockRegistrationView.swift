@@ -2,33 +2,68 @@ import SwiftUI
 import SwiftData
 
 struct DoorLockRegistrationView: View {
-    @Environment(\.modelContext) private var modelContext
-    @State private var category = "도어락"
-    @State private var name = ""
-    @State private var password = ""
-    @State private var isRegistrationComplete = false
+    /// 등록(create) / 수정(edit) 겸용. 기본값 `.create`라 기존 `DoorLockRegistrationView()` 호출부는 그대로 동작.
+    enum Mode {
+        case create
+        case edit(DoorLock)
+    }
+
+    let mode: Mode
+    /// 촬영 플로우(다른 팀원 담당)에서 캡처한 크롭 이미지. create 시 저장/표시.
+    /// 촬영 연결 전 목록의 create 진입은 placeholder(Data())를 전달.
     let cropimageData: Data
+    /// 원본 전체 이미지. 현재 미사용 — 추후 원본 저장용 seam.
     let fullimageData: Data
+
+    @State private var category: String
+    @State private var name: String
+    @State private var password: String
+    @State private var showShareSheet = false
+    @State private var didComplete = false
     @Environment(\.dismiss) private var dismiss
-    
+    @Environment(\.modelContext) private var modelContext
+
     private let categories = ["도어락", "자전거", "캐리어", "기타"]
-    
+
+    init(mode: Mode = .create, cropimageData: Data = Data(), fullimageData: Data = Data()) {
+        self.mode = mode
+        self.cropimageData = cropimageData
+        self.fullimageData = fullimageData
+        switch mode {
+        case .create:
+            _category = State(initialValue: "도어락")
+            _name = State(initialValue: "")
+            _password = State(initialValue: "")
+        case .edit(let lock):
+            _category = State(initialValue: lock.category)
+            _name = State(initialValue: lock.name)
+            _password = State(initialValue: lock.password)
+        }
+    }
+
+    private var title: String {
+        switch mode {
+        case .create: return "도어락 정보 등록"
+        case .edit:   return "도어락 정보 수정"
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.screenBg.ignoresSafeArea()
-            
-            
+
+
             VStack(alignment: .leading, spacing: 0) {
                 navBar
                     .padding(.horizontal, 14)
                     .padding(.top, 8)
-                
-                Text("도어락 정보 등록")
+
+                Text(title)
                     .textStyle(.heading)
                     .foregroundStyle(Color.textPrimary)
                     .padding(.horizontal, 16)
                     .padding(.top, 28)
-                
+
                 VStack(alignment: .leading, spacing: 16) {
                     imagePlaceholder
                     categoryField
@@ -37,49 +72,86 @@ struct DoorLockRegistrationView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 36)
-                
+
                 infoNotice
                     .padding(.horizontal, 16)
                     .padding(.top, 28)
                     .padding(.bottom, 100)
             }
-            
-            Button {
-                saveDoorLock()
-                isRegistrationComplete = true
-            } label: {
-                Text("등록 완료하기")
-                    .textStyle(.button)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 53)
-                    .background(Color.brandPrimary)
-                    .clipShape(Capsule())
-            }
-            .navigationDestination(isPresented: $isRegistrationComplete) {
-                RegistrationCompleteView(name: name, category: category, imageData: cropimageData)
-            }
-            .padding(.horizontal, 16)
+            bottomButton
+                .padding(.horizontal, 16)
         }
         .navigationBarHidden(true)
+        .sheet(isPresented: $showShareSheet) {
+            DeviceShareSheet()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
+        // create 모드: 저장(insert) 후 완료 화면으로 이동.
+        .navigationDestination(isPresented: $didComplete) {
+            RegistrationCompleteView(name: name, category: category, imageData: cropimageData)
+        }
     }
-    
+
     // MARK: - Sub views
+
+    @ViewBuilder
+    private var bottomButton: some View {
+        switch mode {
+        case .create:
+            Button {
+                create()
+            } label: {
+                bottomButtonLabel("등록 완료하기")
+            }
+        case .edit:
+            Button {
+                save()
+                dismiss()
+            } label: {
+                bottomButtonLabel("수정하기")
+            }
+        }
+    }
+
+    private func bottomButtonLabel(_ text: String) -> some View {
+        Text(text)
+            .textStyle(.button)
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 53)
+            .background(Color.brandPrimary)
+            .clipShape(Capsule())
+    }
     
     private var navBar: some View {
         HStack {
             Button { dismiss() } label: {
                 circleNavButton { Image(systemName: "chevron.left") }
             }
-
+            Spacer()
+            // 공유는 저장된 도어락(수정 모드)에서만. create 모드(미저장)에선 숨김.
+            if case .edit = mode {
+                Button { showShareSheet = true } label: {
+                    circleNavButton { Image(systemName: "square.and.arrow.up") }
+                }
+            }
         }
     }
     
+    /// 표시할 사진. create는 넘겨받은 촬영 이미지, edit는 저장된 도어락 이미지.
+    private var displayImageData: Data {
+        switch mode {
+        case .create:          return cropimageData
+        case .edit(let lock):  return lock.image
+        }
+    }
+
     private var imagePlaceholder: some View {
         HStack {
             Spacer()
             ZStack {
-                if let uiImage = UIImage(data: cropimageData) {
+                if let uiImage = UIImage(data: displayImageData) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .scaledToFit()
@@ -90,12 +162,12 @@ struct DoorLockRegistrationView: View {
                         .font(.system(size: 28))
                 }
             }
+            .frame(width: 174, height: 202)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(Color.borderDefault, lineWidth: 1.5)
             )
-            .frame(width: 174, height: 202)
             Spacer()
         }
     }
@@ -196,19 +268,26 @@ struct DoorLockRegistrationView: View {
         )
     }
     
-    private func saveDoorLock()
-    {
-        let newDoorLock = DoorLock(
-            category :category,
-            name: name,
-            password: password,
-            image: cropimageData
-        )
-        modelContext.insert(newDoorLock)
-    }
-    
     // MARK: - Helpers
-    
+
+    /// 등록 모드: 새 DoorLock을 저장소에 추가하고 완료 화면으로 이동.
+    /// 이미지는 촬영 플로우에서 넘어온 크롭본(cropimageData). 촬영 미연결 진입은 빈 Data() 플레이스홀더.
+    private func create() {
+        let lock = DoorLock(category: category, name: name, password: password, image: cropimageData)
+        modelContext.insert(lock)
+        didComplete = true
+    }
+
+    /// 수정 모드 저장. DoorLock은 참조 타입이라 객체를 직접 수정하면 SwiftData가 autosave.
+    /// id/createAt/image는 보존하고 입력값만 갱신, updateAt은 현재로(목록 날짜 라벨 기준).
+    private func save() {
+        guard case .edit(let lock) = mode else { return }
+        lock.category = category
+        lock.name = name
+        lock.password = password
+        lock.updateAt = .now
+    }
+
     @ViewBuilder
     private func circleNavButton<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         ZStack {
