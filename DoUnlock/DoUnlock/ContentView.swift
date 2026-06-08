@@ -13,8 +13,7 @@ struct ContentView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     
     @State private var hasGrantedPermissions = false
-    @State private var onboardingStep = 0
-    
+
     var body: some View {
         if hasCompletedOnboarding {
             // 온보딩 완료 후(또는 재실행): 메인 탭바 — 기본 scan(카메라) 탭
@@ -23,18 +22,10 @@ struct ContentView: View {
             PermissionSetupView {
                 requestPermissions()
             }
-        } else if onboardingStep < OnboardingPage.all.count {
-            OnboardingPageView(
-                page: OnboardingPage.all[onboardingStep],
-                currentStep: onboardingStep,
-                totalSteps: OnboardingPage.all.count
-            ) {
+        } else {
+            OnboardingPageView {
                 // 마지막 페이지 "등록하러 가기" → 온보딩 완료 처리 → MainTabView(카메라)
-                if onboardingStep == OnboardingPage.all.count - 1 {
-                    hasCompletedOnboarding = true
-                } else {
-                    onboardingStep += 1
-                }
+                hasCompletedOnboarding = true
             }
         }
     }
