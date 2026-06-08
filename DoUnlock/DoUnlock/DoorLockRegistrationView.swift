@@ -80,7 +80,8 @@ struct DoorLockRegistrationView: View {
                     .padding(.bottom, 100)
             }
             bottomButton
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 15)
+                .padding(.bottom, 34)
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
