@@ -4,7 +4,7 @@
 //
 //  Created by 정필규 on 6/5/26.
 //
-//  ⚠️ 모델 정의는 팀원(정필규) 소유입니다. origin/siri_remi의 모델과 동일한 내용이며,
+//  ⚠️ 모델 정의는 origin/siri_remi의 모델과 동일한 내용이며,
 //  파일명만 SwiftData.swift → DoorLockModel.swift 로 변경했습니다.
 //  (파일명이 SwiftData면 import SwiftData 가 무시되어 @Model 이 인식되지 않는 Swift 버그 회피)
 //  siri_remi 머지 시 한쪽으로 수렴시키면 됩니다(클래스 정의는 1:1 동일).

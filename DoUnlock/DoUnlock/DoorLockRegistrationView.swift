@@ -2,8 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct DoorLockRegistrationView: View {
-    // ==== Nearby ViewModel (DoorLockListView 에서 environmentObject 로 주입)
-    @EnvironmentObject private var nearbyVM: NearbyViewModel
+    // ==== Nearby ViewModel — 이 화면이 자체 소유. 공유(보내기)는 edit 모드 공유 버튼에서만 사용.
+    @StateObject private var nearbyVM = NearbyViewModel()
     /// 등록(create) / 수정(edit) 겸용. 기본값 `.create`라 기존 `DoorLockRegistrationView()` 호출부는 그대로 동작.
     enum Mode {
         case create
@@ -11,23 +11,27 @@ struct DoorLockRegistrationView: View {
     }
 
     let mode: Mode
-    /// 등록(create) 시 저장할 도어락 사진. 촬영 플로우(다른 팀원 담당)에서 캡처한 이미지를 넘겨받는다.
-    /// 이미지는 필수값 — 촬영 연결 전까지 호출부에서 임시 placeholder(Data())를 전달.
-    let imageData: Data
+    /// 촬영 플로우(다른 팀원 담당)에서 캡처한 크롭 이미지. create 시 저장/표시.
+    /// 촬영 연결 전 목록의 create 진입은 placeholder(Data())를 전달.
+    let cropimageData: Data
+    /// 원본 전체 이미지. 현재 미사용 — 추후 원본 저장용 seam.
+    let fullimageData: Data
 
     @State private var category: String
     @State private var name: String
     @State private var password: String
     @State private var showShareSheet = false
     @State private var didComplete = false
+    @State private var isPasswordVisible = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
     private let categories = ["도어락", "자전거", "캐리어", "기타"]
 
-    init(mode: Mode = .create, imageData: Data = Data()) {
+    init(mode: Mode = .create, cropimageData: Data = Data(), fullimageData: Data = Data()) {
         self.mode = mode
-        self.imageData = imageData
+        self.cropimageData = cropimageData
+        self.fullimageData = fullimageData
         switch mode {
         case .create:
             _category = State(initialValue: "도어락")
@@ -55,7 +59,7 @@ struct DoorLockRegistrationView: View {
             VStack(alignment: .leading, spacing: 0) {
                 navBar
                     .padding(.horizontal, 14)
-                    .padding(.top, 8)
+                    .padding(.top, 16)
 
                 Text(title)
                     .textStyle(.heading)
@@ -77,12 +81,12 @@ struct DoorLockRegistrationView: View {
                     .padding(.top, 28)
                     .padding(.bottom, 100)
             }
-
-
             bottomButton
-                .padding(.horizontal, 16)
+                .padding(.horizontal, 15)
+                .padding(.bottom, 34)
         }
         .navigationBarHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         // ==== 공유 시트: 현재 도어락 + nearbyVM 전달
         .sheet(isPresented: $showShareSheet) {
             DeviceShareSheet(lock: lockForSharing)
@@ -92,7 +96,7 @@ struct DoorLockRegistrationView: View {
         }
         // create 모드: 저장(insert) 후 완료 화면으로 이동.
         .navigationDestination(isPresented: $didComplete) {
-            RegistrationCompleteView()
+            RegistrationCompleteView(name: name, category: category, imageData: cropimageData)
         }
     }
 
@@ -145,7 +149,7 @@ struct DoorLockRegistrationView: View {
     /// 표시할 사진. create는 넘겨받은 촬영 이미지, edit는 저장된 도어락 이미지.
     private var displayImageData: Data {
         switch mode {
-        case .create:          return imageData
+        case .create:          return cropimageData
         case .edit(let lock):  return lock.image
         }
     }
@@ -154,15 +158,12 @@ struct DoorLockRegistrationView: View {
         HStack {
             Spacer()
             ZStack {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.surface)
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.borderDefault, lineWidth: 1.5)
                 if let uiImage = UIImage(data: displayImageData) {
                     Image(uiImage: uiImage)
                         .resizable()
-                        .scaledToFill()
+                        .scaledToFit()
                 } else {
+                    Color.surface
                     Image(systemName: "camera.fill")
                         .foregroundStyle(Color.textPlaceholder)
                         .font(.system(size: 28))
@@ -170,16 +171,16 @@ struct DoorLockRegistrationView: View {
             }
             .frame(width: 174, height: 202)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.borderDefault, lineWidth: 1.5)
+            )
             Spacer()
         }
     }
     
     private var categoryField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("카테고리")
-                .textStyle(.fieldLabel)
-                .foregroundStyle(Color.textSecondary)
-            
+        labeledField("카테고리") {
             Menu {
                 ForEach(categories, id: \.self) { cat in
                     Button(cat) { category = cat }
@@ -194,53 +195,54 @@ struct DoorLockRegistrationView: View {
                         .foregroundStyle(Color.textPrimary)
                         .font(.system(size: 12, weight: .medium))
                 }
-                .padding(.horizontal, 16)
-                .frame(height: 52)
-                .background(Color.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.borderDefault, lineWidth: 1.5)
-                )
+                .fieldBox()
             }
         }
     }
-    
+
     private var nameField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("이름")
-                .textStyle(.fieldLabel)
-                .foregroundStyle(Color.textSecondary)
-            
-            TextField("아카데미 사물함", text: $name)
-                .textStyle(.fieldValue)
-                .padding(.horizontal, 16)
-                .frame(height: 52)
-                .background(Color.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.borderDefault, lineWidth: 1.5)
-                )
+        labeledField("이름") {
+            ZStack(alignment: .leading) {
+                if name.isEmpty {
+                    Text("아카데미 사물함")
+                        .textStyle(.fieldValue)
+                        .foregroundStyle(Color.textTertiary)
+                }
+                TextField("", text: $name)
+                    .textStyle(.fieldValue)
+                    .foregroundStyle(Color.textPrimary)
+            }
+            .fieldBox()
         }
     }
-    
+
     private var passwordField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("비밀번호")
-                .textStyle(.fieldLabel)
-                .foregroundStyle(Color.textSecondary)
-            
-            SecureField("1234", text: $password)
-                .textStyle(.fieldValue)
-                .padding(.horizontal, 16)
-                .frame(height: 52)
-                .background(Color.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.borderDefault, lineWidth: 1.5)
-                )
+        labeledField("비밀번호") {
+            HStack {
+                ZStack(alignment: .leading) {
+                    if password.isEmpty {
+                        Text("1234")
+                            .textStyle(.fieldValue)
+                            .foregroundStyle(Color.textTertiary)
+                    }
+                    Group {
+                        if isPasswordVisible {
+                            TextField("", text: $password)
+                        } else {
+                            SecureField("", text: $password)
+                        }
+                    }
+                    .textStyle(.fieldValue)
+                    .foregroundStyle(Color.textPrimary)
+                }
+                // TODO: 수정 모드에서 저장된 비번 노출은 추후 Face ID 인증 후 허용 (암호화 작업과 연계)
+                Button { isPasswordVisible.toggle() } label: {
+                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                        .foregroundStyle(Color.textMuted)
+                        .font(.system(size: 16))
+                }
+            }
+            .fieldBox()
         }
     }
     
@@ -276,9 +278,9 @@ struct DoorLockRegistrationView: View {
     }
 
     /// 등록 모드: 새 DoorLock을 저장소에 추가하고 완료 화면으로 이동.
-    /// 이미지 캡처는 인식 담당 영역 → 현재는 빈 Data() 플레이스홀더.
+    /// 이미지는 촬영 플로우에서 넘어온 크롭본(cropimageData). 촬영 미연결 진입은 빈 Data() 플레이스홀더.
     private func create() {
-        let lock = DoorLock(category: category, name: name, password: password, image: imageData)
+        let lock = DoorLock(category: category, name: name, password: password, image: cropimageData)
         modelContext.insert(lock)
         didComplete = true
     }
@@ -291,6 +293,16 @@ struct DoorLockRegistrationView: View {
         lock.name = name
         lock.password = password
         lock.updateAt = .now
+    }
+
+    /// 라벨 + 입력 박스 한 쌍. 카테고리·이름·비밀번호 공통 레이아웃.
+    private func labeledField<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label)
+                .textStyle(.fieldLabel)
+                .foregroundStyle(Color.textSecondary)
+            content()
+        }
     }
 
     @ViewBuilder
@@ -307,10 +319,26 @@ struct DoorLockRegistrationView: View {
     }
 }
 
+private extension View {
+    /// 입력 박스 공통 스타일(높이 52, surface 배경, 라운드 보더).
+    func fieldBox() -> some View {
+        self
+            .padding(.horizontal, 16)
+            .frame(height: 52)
+            .background(Color.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.borderDefault, lineWidth: 1.5)
+            )
+    }
+}
+
 #Preview {
-    // ==== 프리뷰: nearbyVM 주입 필요
     NavigationStack {
-        DoorLockRegistrationView()
-            .environmentObject(NearbyViewModel())
+        DoorLockRegistrationView(
+            cropimageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!,
+            fullimageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!
+        )
     }
 }

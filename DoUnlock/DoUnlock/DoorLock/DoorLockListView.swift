@@ -16,6 +16,8 @@ struct DoorLockListView: View {
     @StateObject private var nearbyVM = NearbyViewModel()
     // ==== 수신된 도어락을 SwiftData에 저장하기 위해 modelContext 필요
     @Environment(\.modelContext) private var modelContext
+    // 등록 버튼이 scan(카메라) 탭으로 전환하는 데 사용.
+    @Environment(AppRouter.self) private var router
 
     var body: some View {
         ZStack {
@@ -25,16 +27,15 @@ struct DoorLockListView: View {
                 Text("등록된 도어락 목록")
                     .textStyle(.navTitle)
                     .foregroundStyle(Color.textPrimary)
-                    .padding(.top, 12)
+                    .padding(.top, 38)
 
                 ScrollView {
                     LazyVStack(spacing: 20) {
                         ForEach(locks) { lock in
                             NavigationLink {
                                 // DoorLock은 참조 타입 → 수정뷰에서 직접 변경하면 @Query가 자동 반영.
-                                // ==== nearbyVM 을 하위 뷰에 전달 (공유 버튼 연결용)
+                                // 등록뷰가 자체 NearbyViewModel을 소유하므로 별도 주입 불필요.
                                 DoorLockRegistrationView(mode: .edit(lock))
-                                    .environmentObject(nearbyVM)
                             } label: {
                                 DoorLockCard(lock: lock)
                             }
@@ -42,12 +43,13 @@ struct DoorLockListView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
+                    .padding(.top, 35)
+                    .padding(.bottom, 20)
                 }
 
                 registerButton
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 34)
+                    .padding(.bottom, 16)
             }
 
             #if DEBUG
@@ -83,11 +85,9 @@ struct DoorLockListView: View {
     // MARK: - Sub views
 
     private var registerButton: some View {
-        NavigationLink {
-            // 등록(create) 모드. imageData는 임시 placeholder — 촬영 플로우 연결 시 교체.
-            // ==== nearbyVM 전달 (create 모드에서는 공유 버튼 숨김이지만 일관성 유지)
-            DoorLockRegistrationView(mode: .create)
-                .environmentObject(nearbyVM)
+        // 등록은 항상 카메라 촬영을 거친다 → scan(카메라) 탭으로 전환.
+        Button {
+            router.selectedTab = .scan
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "plus")
@@ -104,7 +104,7 @@ struct DoorLockListView: View {
                 Capsule()
                     .stroke(
                         Color.infoBorder,
-                        style: StrokeStyle(lineWidth: 1.5, dash: [6])
+                        style: StrokeStyle(lineWidth: 1.5, dash: [3])
                     )
             )
         }
@@ -123,4 +123,5 @@ struct DoorLockListView: View {
         DoorLockListView()
     }
     .modelContainer(container)
+    .environment(AppRouter())
 }
