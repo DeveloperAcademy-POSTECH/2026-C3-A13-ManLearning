@@ -20,6 +20,7 @@ struct DoorLockRegistrationView: View {
     @State private var password: String
     @State private var showShareSheet = false
     @State private var didComplete = false
+    @State private var isPasswordVisible = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
@@ -56,7 +57,7 @@ struct DoorLockRegistrationView: View {
             VStack(alignment: .leading, spacing: 0) {
                 navBar
                     .padding(.horizontal, 14)
-                    .padding(.top, 8)
+                    .padding(.top, 16)
 
                 Text(title)
                     .textStyle(.heading)
@@ -82,6 +83,7 @@ struct DoorLockRegistrationView: View {
                 .padding(.horizontal, 16)
         }
         .navigationBarHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         .sheet(isPresented: $showShareSheet) {
             DeviceShareSheet()
                 .presentationDetents([.medium, .large])
@@ -173,11 +175,7 @@ struct DoorLockRegistrationView: View {
     }
     
     private var categoryField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("카테고리")
-                .textStyle(.fieldLabel)
-                .foregroundStyle(Color.textSecondary)
-            
+        labeledField("카테고리") {
             Menu {
                 ForEach(categories, id: \.self) { cat in
                     Button(cat) { category = cat }
@@ -192,55 +190,54 @@ struct DoorLockRegistrationView: View {
                         .foregroundStyle(Color.textPrimary)
                         .font(.system(size: 12, weight: .medium))
                 }
-                .padding(.horizontal, 16)
-                .frame(height: 52)
-                .background(Color.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.borderDefault, lineWidth: 1.5)
-                )
+                .fieldBox()
             }
         }
     }
-    
+
     private var nameField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("이름")
-                .textStyle(.fieldLabel)
-                .foregroundStyle(Color.textSecondary)
-            
-            TextField("아카데미 사물함", text: $name)
-                .textStyle(.fieldValue)
-                .foregroundStyle(Color.black)
-                .padding(.horizontal, 16)
-                .frame(height: 52)
-                .background(Color.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.borderDefault, lineWidth: 1.5)
-                )
+        labeledField("이름") {
+            ZStack(alignment: .leading) {
+                if name.isEmpty {
+                    Text("아카데미 사물함")
+                        .textStyle(.fieldValue)
+                        .foregroundStyle(Color.textTertiary)
+                }
+                TextField("", text: $name)
+                    .textStyle(.fieldValue)
+                    .foregroundStyle(Color.textPrimary)
+            }
+            .fieldBox()
         }
     }
-    
+
     private var passwordField: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("비밀번호")
-                .textStyle(.fieldLabel)
-                .foregroundStyle(Color.textSecondary)
-            
-            SecureField("1234", text: $password)
-                .textStyle(.fieldValue)
-                .foregroundStyle(Color.black)
-                .padding(.horizontal, 16)
-                .frame(height: 52)
-                .background(Color.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.borderDefault, lineWidth: 1.5)
-                )
+        labeledField("비밀번호") {
+            HStack {
+                ZStack(alignment: .leading) {
+                    if password.isEmpty {
+                        Text("1234")
+                            .textStyle(.fieldValue)
+                            .foregroundStyle(Color.textTertiary)
+                    }
+                    Group {
+                        if isPasswordVisible {
+                            TextField("", text: $password)
+                        } else {
+                            SecureField("", text: $password)
+                        }
+                    }
+                    .textStyle(.fieldValue)
+                    .foregroundStyle(Color.textPrimary)
+                }
+                // TODO: 수정 모드에서 저장된 비번 노출은 추후 Face ID 인증 후 허용 (암호화 작업과 연계)
+                Button { isPasswordVisible.toggle() } label: {
+                    Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
+                        .foregroundStyle(Color.textMuted)
+                        .font(.system(size: 16))
+                }
+            }
+            .fieldBox()
         }
     }
     
@@ -288,6 +285,16 @@ struct DoorLockRegistrationView: View {
         lock.updateAt = .now
     }
 
+    /// 라벨 + 입력 박스 한 쌍. 카테고리·이름·비밀번호 공통 레이아웃.
+    private func labeledField<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(label)
+                .textStyle(.fieldLabel)
+                .foregroundStyle(Color.textSecondary)
+            content()
+        }
+    }
+
     @ViewBuilder
     private func circleNavButton<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         ZStack {
@@ -299,6 +306,21 @@ struct DoorLockRegistrationView: View {
                 .foregroundStyle(Color.textPrimary)
         }
         .frame(width: 40, height: 40)
+    }
+}
+
+private extension View {
+    /// 입력 박스 공통 스타일(높이 52, surface 배경, 라운드 보더).
+    func fieldBox() -> some View {
+        self
+            .padding(.horizontal, 16)
+            .frame(height: 52)
+            .background(Color.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.borderDefault, lineWidth: 1.5)
+            )
     }
 }
 
