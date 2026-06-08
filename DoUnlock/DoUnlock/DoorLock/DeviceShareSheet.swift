@@ -4,31 +4,13 @@
 //
 //  "주변기기로 공유" 시트. (Figma 466:2417 목록 / 480:3465 전송 완료)
 //  도어락 정보 수정 화면 우상단 공유 버튼에서 아래에서 위로 올라옵니다.
-//  기기 카드를 탭하면 같은 시트가 "전송 완료" 상태로 전환됩니다(목업).
+//  탐색된 기기 카드를 탭하면 실제 전송 후 "전송 완료" 상태로 전환됩니다.
 //
 //  실제 근거리 통신(MultipeerConnectivity)이 NearbyViewModel 을 통해 연결됩니다.
 //
 
 import MultipeerConnectivity
 import SwiftUI
-
-struct ShareDevice: Identifiable {
-    let id: UUID
-    var name: String
-
-    init(id: UUID = UUID(), name: String) {
-        self.id = id
-        self.name = name
-    }
-}
-
-extension ShareDevice {
-    /// 화면 확인용 더미데이터. 실제 근거리 통신 연결 시 제거됩니다.
-    static let sampleData: [ShareDevice] = [
-        ShareDevice(name: "iPhone 17"),
-        ShareDevice(name: "iPhone Air"),
-    ]
-}
 
 struct DeviceShareSheet: View {
     // ==== 전송할 도어락 패킷 (DoorLockDraft 제거 → NearbyPacket 으로 변경)
