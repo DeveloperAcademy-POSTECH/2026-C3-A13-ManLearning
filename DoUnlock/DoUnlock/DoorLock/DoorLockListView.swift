@@ -27,7 +27,7 @@ struct DoorLockListView: View {
                 Text("등록된 도어락 목록")
                     .textStyle(.navTitle)
                     .foregroundStyle(Color.textPrimary)
-                    .padding(.top, 12)
+                    .padding(.top, 38)
 
                 ScrollView {
                     LazyVStack(spacing: 20) {
@@ -42,12 +42,13 @@ struct DoorLockListView: View {
                         }
                     }
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
+                    .padding(.top, 35)
+                    .padding(.bottom, 20)
                 }
 
                 registerButton
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 34)
+                    .padding(.bottom, 16)
             }
 
             #if DEBUG
@@ -91,7 +92,7 @@ struct DoorLockListView: View {
                 Capsule()
                     .stroke(
                         Color.infoBorder,
-                        style: StrokeStyle(lineWidth: 1.5, dash: [6])
+                        style: StrokeStyle(lineWidth: 1.5, dash: [3])
                     )
             )
         }
