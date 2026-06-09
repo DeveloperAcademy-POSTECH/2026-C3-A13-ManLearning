@@ -9,6 +9,27 @@
 import SwiftUI
 import SwiftData
 
+/// scan 탭 루트: 등록된 DoorLock이 없으면 등록 화면, 있으면 인식 화면을 표시한다.
+private struct ScanTabRootView: View {
+    @Query private var doorLocks: [DoorLock]
+    @Environment(AppRouter.self) private var router
+
+    var body: some View {
+        Group {
+            if doorLocks.isEmpty {
+                ObjectDetectView()
+            } else {
+                ObjectRecongnitionView()
+            }
+        }
+        .onChange(of: router.finishCaptureFlowRequested) { _, requested in
+            guard requested else { return }
+            router.selectedTab = .password
+            router.finishCaptureFlowRequested = false
+        }
+    }
+}
+
 struct MainTabView: View {
     @State private var router = AppRouter()
 
@@ -16,9 +37,8 @@ struct MainTabView: View {
         @Bindable var router = router
 
         TabView(selection: $router.selectedTab) {
-            // 촬영/등록 — ObjectDetectView (내부에 촬영→리뷰→등록→완료 cover 보유)
             NavigationStack {
-                ObjectDetectView()
+                ScanTabRootView()
             }
             .tabItem { Label("scan", systemImage: "camera.fill") }
             .tag(AppRouter.Tab.scan)
