@@ -10,18 +10,26 @@ import CoreML
 import Foundation
 import UIKit
 
+struct ObjectSimilarityReference: Sendable, Identifiable, Hashable {
+    let id: UUID
+    let name: String
+    let category: String
+    let imageData: Data
+}
+
 struct ObjectSimilarityResult: Sendable {
-    // score: 라이브 카메라 프레임과 mock 이미지 중 가장 가까운 이미지의 cosine similarity 값입니다.
+    // score: 라이브 카메라 프레임과 저장 이미지 중 가장 가까운 이미지의 cosine similarity 값입니다.
     // isMatched: score가 threshold 이상인지 여부이며, 화면의 초록/빨강 프레임 상태에 사용합니다.
-    // bestMatchName: 가장 유사한 mock 이미지 asset 이름입니다.
+    // bestMatchID/name/category: 가장 유사한 저장 도어락 정보입니다.
     let score: Float
     let isMatched: Bool
+    let bestMatchID: UUID?
     let bestMatchName: String?
+    let bestMatchCategory: String?
 }
 
 enum ObjectSimilarityError: LocalizedError, Sendable {
     case modelNotFound
-    case mockImagesNotFound([String])
     case invalidImage
     case invalidCropRect
     case cannotCreatePixelBuffer
@@ -31,8 +39,6 @@ enum ObjectSimilarityError: LocalizedError, Sendable {
         switch self {
         case .modelNotFound:
             return "DINOv3SmallFeatureExtractor model was not found in the app bundle."
-        case .mockImagesNotFound(let names):
-            return "Mock images were not found: \(names.joined(separator: ", "))."
         case .invalidImage:
             return "The source image could not be converted into a Core Image input."
         case .invalidCropRect:
@@ -46,16 +52,10 @@ enum ObjectSimilarityError: LocalizedError, Sendable {
 }
 
 final class ObjectSimilarity: @unchecked Sendable {
-    // 직접 찍은 테스트 사진은 Assets.xcassets에 아래 이름의 Image Set으로 추가하면 됩니다.
-    // 등록 화면이 완성되기 전까지 이 mock 이미지들을 "등록된 도어락 사진"처럼 사용합니다.
-    static let defaultMockImageNames = [
-        "MockDoorLock1",
-        "MockDoorLock2",
-        "MockDoorLock3"
-    ]
-
     private struct RegisteredEmbedding {
-        let imageName: String
+        let id: UUID
+        let name: String
+        let category: String
         let values: [Float]
     }
 
@@ -64,50 +64,49 @@ final class ObjectSimilarity: @unchecked Sendable {
     private let outputName = "embedding"
     private let inputSize = 224
     private let threshold: Float
-    private let mockImageNames: [String]
     private let model: MLModel
     private let ciContext = CIContext()
 
-    // mock 이미지들은 매 프레임마다 다시 DINO에 넣지 않고, 처음 한 번 embedding으로 변환해 캐싱합니다.
+    // 저장 이미지는 매 프레임마다 다시 DINO에 넣지 않고, 처음 한 번 embedding으로 변환해 캐싱합니다.
     private var registeredEmbeddings: [RegisteredEmbedding] = []
 
-    init(
-        mockImageNames: [String] = ObjectSimilarity.defaultMockImageNames,
-        threshold: Float = 0.7
-    ) throws {
-        self.mockImageNames = mockImageNames
+    var hasRegisteredEmbeddings: Bool {
+        registeredEmbeddings.isEmpty == false
+    }
+
+    init(threshold: Float = 0.7) throws {
         self.threshold = threshold
         self.model = try Self.loadModel(named: modelName)
     }
 
-    func prepareMockEmbeddings() throws {
+    func prepareRegisteredEmbeddings(
+        from references: [ObjectSimilarityReference]
+    ) throws {
         var embeddings: [RegisteredEmbedding] = []
-        var missingImageNames: [String] = []
 
-        // UIImage(named:)는 Assets.xcassets의 Image Set 이름으로 이미지를 찾습니다.
-        for imageName in mockImageNames {
-            guard let image = UIImage(named: imageName) else {
-                missingImageNames.append(imageName)
+        for reference in references {
+            guard let image = UIImage(data: reference.imageData) else {
+                print("Skipping invalid registered image data: \(reference.id)")
                 continue
             }
 
             // DINO는 이미지를 embedding vector로 바꿔주는 feature extractor입니다.
-            // 이 단계에서 mock 사진들을 미리 vector로 바꿔두면 라이브 비교가 훨씬 가벼워집니다.
-            let embedding = try extractEmbedding(from: image)
-            embeddings.append(
-                RegisteredEmbedding(
-                    imageName: imageName,
-                    values: embedding
+            // 이 단계에서 저장 사진들을 미리 vector로 바꿔두면 라이브 비교가 훨씬 가벼워집니다.
+            do {
+                let embedding = try extractEmbedding(from: image)
+                embeddings.append(
+                    RegisteredEmbedding(
+                        id: reference.id,
+                        name: reference.name,
+                        category: reference.category,
+                        values: embedding
+                    )
                 )
-            )
-        }
-
-        guard embeddings.isEmpty == false else {
-            throw ObjectSimilarityError.mockImagesNotFound(mockImageNames)
-        }
-
-        if missingImageNames.isEmpty == false {
-            print("Missing mock images: \(missingImageNames.joined(separator: ", "))")
+            } catch ObjectSimilarityError.invalidImage {
+                print("Skipping invalid registered image: \(reference.id)")
+            } catch {
+                throw error
+            }
         }
 
         registeredEmbeddings = embeddings
@@ -117,9 +116,14 @@ final class ObjectSimilarity: @unchecked Sendable {
         pixelBuffer: CVPixelBuffer,
         cropRect: CGRect
     ) throws -> ObjectSimilarityResult {
-        // prepareMockEmbeddings()가 아직 호출되지 않았더라도 비교 직전에 한 번 준비합니다.
-        if registeredEmbeddings.isEmpty {
-            try prepareMockEmbeddings()
+        guard registeredEmbeddings.isEmpty == false else {
+            return ObjectSimilarityResult(
+                score: 0,
+                isMatched: false,
+                bestMatchID: nil,
+                bestMatchName: nil,
+                bestMatchCategory: nil
+            )
         }
 
         // CameraPreviewView가 넘겨준 cropRect는 화면 중앙 가이드 프레임에 해당하는 카메라 픽셀 영역입니다.
@@ -129,12 +133,13 @@ final class ObjectSimilarity: @unchecked Sendable {
             cropRect: cropRect
         )
 
-        // 등록된 mock 사진 여러 장 중 cosine similarity가 가장 높은 이미지를 최종 후보로 사용합니다.
-        // 처음 테스트 단계에서는 평균보다 max score가 어떤 사진과 가장 닮았는지 확인하기 쉽습니다.
+        // 저장된 사진 여러 장 중 cosine similarity가 가장 높은 이미지를 최종 후보로 사용합니다.
         let bestMatch = registeredEmbeddings
             .map { registeredEmbedding in
                 (
-                    imageName: registeredEmbedding.imageName,
+                    id: registeredEmbedding.id,
+                    name: registeredEmbedding.name,
+                    category: registeredEmbedding.category,
                     score: Self.cosineSimilarity(
                         liveEmbedding,
                         registeredEmbedding.values
@@ -150,7 +155,9 @@ final class ObjectSimilarity: @unchecked Sendable {
         return ObjectSimilarityResult(
             score: score,
             isMatched: score >= threshold,
-            bestMatchName: bestMatch?.imageName
+            bestMatchID: bestMatch?.id,
+            bestMatchName: bestMatch?.name,
+            bestMatchCategory: bestMatch?.category
         )
     }
 
@@ -191,7 +198,7 @@ final class ObjectSimilarity: @unchecked Sendable {
             throw ObjectSimilarityError.invalidImage
         }
 
-        // mock 이미지는 전체 사진을 모델 입력으로 사용합니다.
+        // 저장 이미지는 전체 사진을 모델 입력으로 사용합니다.
         let inputPixelBuffer = try makeModelInputPixelBuffer(
             from: ciImage,
             cropRect: ciImage.extent

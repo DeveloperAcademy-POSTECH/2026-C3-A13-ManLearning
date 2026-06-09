@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		FDA722162FD19334002DA800 /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -46,7 +46,6 @@
 			isa = PBXGroup;
 			children = (
 				CBCAAFD12FCD53B7008EB235 /* DoUnlock */,
-				FDA722162FD19334002DA800 /* DoUnlock.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -72,7 +71,7 @@
 			packageProductDependencies = (
 			);
 			productName = DoUnlock;
-			productReference = FDA722162FD19334002DA800 /* DoUnlock.app */;
+			productReference = CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
