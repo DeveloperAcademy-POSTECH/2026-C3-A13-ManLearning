@@ -22,6 +22,10 @@ final class NearbyManager: NSObject {
     private var advertiser:       MCNearbyServiceAdvertiser?
     private var browser:          MCNearbyServiceBrowser?
 
+    // 같은 기기 식별용. 목록(광고)·등록뷰(탐색)가 각자 NearbyManager 인스턴스라 MCPeerID로는
+    // 자기 자신을 구분 못 함 → 벤더 식별자를 광고 정보로 실어 보내 탐색 측에서 자기 광고를 거른다.
+    private let vendorID = UIDevice.current.identifierForVendor?.uuidString ?? ""
+
     // --- 콜백 (ViewModel 이 세팅) ---
     var onPeerDiscovered: NearbyPeerDiscoveredCallback?
     var onPeerLost:       NearbyPeerLostCallback?
@@ -43,7 +47,7 @@ final class NearbyManager: NSObject {
 
     func startAdvertising() {
         let adv = MCNearbyServiceAdvertiser(peer: localPeerID,
-                                            discoveryInfo: nil,
+                                            discoveryInfo: ["vid": vendorID],
                                             serviceType: kServiceType)
         adv.delegate = self
         adv.startAdvertisingPeer()
@@ -157,6 +161,8 @@ extension NearbyManager: MCNearbyServiceBrowserDelegate {
     func browser(_ browser: MCNearbyServiceBrowser,
                  foundPeer peerID: MCPeerID,
                  withDiscoveryInfo info: [String: String]?) {
+        // 같은 기기(벤더 식별자 동일)의 자기 광고는 제외 — 자신에게 전송되는 것 방지.
+        guard info?["vid"] != vendorID else { return }
         // 발견 즉시 초대 — 연결 성립 후 onPeerConnected 에서 데이터 전송
         browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10)
         DispatchQueue.main.async { self.onPeerDiscovered?(peerID) }
