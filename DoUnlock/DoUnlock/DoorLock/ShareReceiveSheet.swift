@@ -5,18 +5,22 @@
 //  도어락 정보를 "받는" 쪽 iPhone에서 올라오는 수락 시트. (Figma 544:2697)
 //  발신 기기명 + 안내문 + 공유될 도어락 카드 + [나중에 / 공유 허용] 버튼.
 //
-//  ⚠️ 발신 기기명·도어락 카드는 실제 통신이 아닌 임시(목업) 값입니다.
-//  추후 근거리 통신(MultipeerConnectivity 등) 수신부를 붙이면 `senderName`과 카드 내용을
-//  실제 수신 데이터로 교체하고, 이 시트를 수신 이벤트에 연결하면 됩니다.
-//  (ShareDevice.sampleData seam과 같은 패턴)
+//  NearbyViewModel 을 통해 실제 수신 데이터를 표시합니다.
 //
 
 import SwiftUI
 
 struct ShareReceiveSheet: View {
-    /// 공유를 보낸 기기 이름. 실제 수신 연결 전까지는 목업 기본값.
-    var senderName: String = "iPhone Air"
+    // ==== Nearby ViewModel (수신 데이터 + 수락/거절 처리)
+    @ObservedObject var nearbyVM: NearbyViewModel
+    // ==== 수락 시 도어락을 목록에 추가하는 콜백 (DoorLockDraft 제거 → NearbyPacket)
+    var onAccept: (NearbyPacket) -> Void
     @Environment(\.dismiss) private var dismiss
+
+    // ==== 실제 수신 데이터 기반 computed 프로퍼티
+    private var senderName: String   { nearbyVM.receivedFrom.isEmpty ? "알 수 없음" : nearbyVM.receivedFrom }
+    private var lockName:    String   { nearbyVM.receivedLock?.name     ?? "도어락" }
+    private var lockCategory: String  { nearbyVM.receivedLock?.category ?? "도어락" }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -77,10 +81,11 @@ struct ShareReceiveSheet: View {
                 }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("우리집")
+                // ==== 실제 수신된 도어락 이름/카테고리 표시
+                Text(lockName)
                     .textStyle(.cardTitle)
                     .foregroundStyle(Color.textPrimary)
-                Text("도어락")
+                Text(lockCategory)
                     .textStyle(.cardSubtitle)
                     .foregroundStyle(Color.textMuted)
             }
@@ -96,13 +101,18 @@ struct ShareReceiveSheet: View {
     private var buttons: some View {
         HStack(spacing: 16) {
             Button {
+                // ==== 거절: 상태 초기화 후 닫기
+                nearbyVM.rejectReceive()
                 dismiss()
             } label: {
                 capsuleLabel("나중에", fg: Color.destructiveFg, bg: Color.destructiveBg)
             }
 
             Button {
-                // seam: 추후 수락 시 내 도어락 목록에 추가. 현재는 목업이라 닫기만.
+                // ==== 수락: 도어락 반환 → 목록에 추가 → 닫기
+                if let lock = nearbyVM.acceptReceive() {
+                    onAccept(lock)
+                }
                 dismiss()
             } label: {
                 capsuleLabel("공유 허용", fg: .white, bg: Color.brandPrimary)
@@ -122,5 +132,9 @@ struct ShareReceiveSheet: View {
 }
 
 #Preview {
-    ShareReceiveSheet()
+    // ==== 프리뷰: 목업 NearbyPacket 사용 (DoorLockDraft 제거)
+    let vm = NearbyViewModel()
+    vm.receivedFrom = "iPhone Air"
+    vm.receivedLock = NearbyPacket(category: "도어락", name: "우리집", password: "1234")
+    return ShareReceiveSheet(nearbyVM: vm, onAccept: { _ in })
 }

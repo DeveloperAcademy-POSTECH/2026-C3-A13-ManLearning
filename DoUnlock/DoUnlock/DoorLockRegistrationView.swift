@@ -2,6 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct DoorLockRegistrationView: View {
+    // ==== Nearby ViewModel — 이 화면이 자체 소유. 공유(보내기)는 edit 모드 공유 버튼에서만 사용.
+    @StateObject private var nearbyVM = NearbyViewModel()
     /// 등록(create) / 수정(edit) 겸용. 기본값 `.create`라 기존 `DoorLockRegistrationView()` 호출부는 그대로 동작.
     enum Mode {
         case create
@@ -85,8 +87,10 @@ struct DoorLockRegistrationView: View {
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
+        // ==== 공유 시트: 현재 도어락 + nearbyVM 전달
         .sheet(isPresented: $showShareSheet) {
-            DeviceShareSheet()
+            DeviceShareSheet(lock: lockForSharing)
+                .environmentObject(nearbyVM)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
@@ -268,6 +272,11 @@ struct DoorLockRegistrationView: View {
     
     // MARK: - Helpers
 
+    // ==== 공유용 NearbyPacket (현재 폼 입력값 기준 — 미저장 상태도 공유 가능, DoorLockDraft 제거)
+    private var lockForSharing: NearbyPacket {
+        return NearbyPacket(category: category, name: name, password: password)
+    }
+
     /// 등록 모드: 새 DoorLock을 저장소에 추가하고 완료 화면으로 이동.
     /// 이미지는 촬영 플로우에서 넘어온 크롭본(cropimageData). 촬영 미연결 진입은 빈 Data() 플레이스홀더.
     private func create() {
@@ -328,10 +337,8 @@ private extension View {
 #Preview {
     NavigationStack {
         DoorLockRegistrationView(
-            cropimageData:UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!,
-
+            cropimageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!,
             fullimageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!
-            
         )
     }
 }
