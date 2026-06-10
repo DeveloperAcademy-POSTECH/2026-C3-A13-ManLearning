@@ -123,7 +123,7 @@ struct RegistrationCompleteView: View {
             }
 
             Button {
-                // TODO: 카메라 인식 화면으로 이동
+                router.finishCaptureAndScanRequested = true
             } label: {
                 Text("바로 인식해보기")
                     .textStyle(.buttonLarge)

@@ -218,6 +218,15 @@ struct ObjectDetectView: View {
             router.selectedTab = .password
             router.finishCaptureFlowRequested = false
         }
+        // 등록 완료 화면 "바로 인식해보기" → cover를 닫고 scan 탭 인식 화면으로 전환.
+        .onChange(of: router.finishCaptureAndScanRequested) { _, requested in
+            guard requested else { return }
+            reviewData = nil
+            viewModel.reset()
+            router.forceRegisterMode = false
+            router.selectedTab = .scan
+            router.finishCaptureAndScanRequested = false
+        }
         .fullScreenCover(item: $reviewData) { data in
             NavigationStack {
                 CapturedImageReviewView(

@@ -51,6 +51,11 @@ extension Color {
     static let lockBadgeBg       = Color(hex: 0x161530)   // 배경
     static let lockBadgeIcon     = Color(hex: 0x6B7BF7)   // 자물쇠 글리프
 
+    // MARK: - Recognition overlay
+    static let arBoxStroke       = Color(hex: 0x36EA45)   // AR 감지 박스 테두리 (Figma: #36EA45)
+    static let viewButtonSingle  = Color(hex: 0x958E8B)   // 보기/숨기기 버튼 — 단일 매칭 (Figma: #958E8B)
+    static let grabberFill       = Color(hex: 0xCCCCCC)   // 시트 그래버 (Figma: --fills---vibrant/primary)
+
     // MARK: - hex initializer
     private init(hex: UInt32, opacity: Double = 1) {
         self.init(
