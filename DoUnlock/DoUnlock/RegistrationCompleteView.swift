@@ -76,11 +76,19 @@ struct RegistrationCompleteView: View {
                     )
                 )
                 .frame(width: 44, height: 55)
-                .overlay(
-                    Image(systemName: "lock.fill")
-                        .foregroundStyle(.white)
-                        .font(.system(size: 15))
-                )
+                .overlay {
+                    if let uiImage = UIImage(data: imageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 44, height: 55)
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                    } else {
+                        Image(systemName: "lock.fill")
+                            .foregroundStyle(.white)
+                            .font(.system(size: 15))
+                    }
+                }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(name)
