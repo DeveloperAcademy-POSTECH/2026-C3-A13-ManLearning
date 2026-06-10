@@ -11,7 +11,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		937DCF152FD56ECC009B91CE /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		937DCF5B2FD57491009B91CE /* MultipeerConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultipeerConnectivity.framework; path = System/Library/Frameworks/MultipeerConnectivity.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -60,7 +60,6 @@
 			isa = PBXGroup;
 			children = (
 				CBCAAFD12FCD53B7008EB235 /* DoUnlock */,
-				937DCF152FD56ECC009B91CE /* DoUnlock.app */,
 				937DCF5A2FD57491009B91CE /* Frameworks */,
 			);
 			sourceTree = "<group>";
@@ -87,7 +86,7 @@
 			packageProductDependencies = (
 			);
 			productName = DoUnlock;
-			productReference = 937DCF152FD56ECC009B91CE /* DoUnlock.app */;
+			productReference = CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
