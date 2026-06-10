@@ -8,6 +8,7 @@ struct NearbyPacket: Codable {
     var category: String
     var name:     String
     var password: String
+    var image:    Data?      // 도어락 사진. 옵셔널이라 사진 없는 경우도 안전. JSON에선 base64로 직렬화
 }
 
 // ========================= NearbyViewModel =========================
@@ -27,6 +28,8 @@ final class NearbyViewModel: ObservableObject {
     private let manager:     NearbyManager = NearbyManager()
     private var pendingLock: NearbyPacket? = nil           // DoorLockDraft 제거
     private var pendingPeer: MCPeerID?     = nil
+    // vid(기기 고유값) → 최신 peerID. 같은 기기가 여러 peerID로 광고돼도 한 항목만 표시하기 위한 중복제거 키.
+    private var peersByVid:  [String: MCPeerID] = [:]
 
     // ========================= init =========================
 
@@ -48,12 +51,14 @@ final class NearbyViewModel: ObservableObject {
 
     func startBrowsing() {
         discoveredPeers.removeAll()
+        peersByVid.removeAll()
         manager.startBrowsing()
     }
 
     func stopBrowsing() {
         manager.stopBrowsing()
         discoveredPeers.removeAll()
+        peersByVid.removeAll()
     }
 
     // ========================= 전송 =========================
@@ -87,17 +92,20 @@ final class NearbyViewModel: ObservableObject {
 
     private func setupCallbacks() {
 
-        // 브라우저: 피어 발견 → 목록 추가
-        manager.onPeerDiscovered = { [weak self] peer in
+        // 브라우저: 피어 발견 → vid(기기) 기준 중복제거 후 목록 갱신.
+        // 같은 기기가 다른 peerID로 들어와도 한 항목만 유지(최신 peerID로 덮어씀).
+        manager.onPeerDiscovered = { [weak self] peer, vid in
             guard let self else { return }
-            if !self.discoveredPeers.contains(peer) {
-                self.discoveredPeers.append(peer)
-            }
+            let key = vid ?? peer.displayName          // vid 없으면 표시 이름으로 대체
+            self.peersByVid[key] = peer
+            self.rebuildDiscovered()
         }
 
-        // 브라우저: 피어 소실 → 목록 제거
+        // 브라우저: 피어 소실 → 해당 peerID 제거 후 목록 갱신
         manager.onPeerLost = { [weak self] peer in
-            self?.discoveredPeers.removeAll { $0 == peer }
+            guard let self else { return }
+            self.peersByVid = self.peersByVid.filter { $0.value != peer }
+            self.rebuildDiscovered()
         }
 
         // 세션: 연결 완료 → 발신측이면 대기 중 전송 실행
@@ -122,6 +130,11 @@ final class NearbyViewModel: ObservableObject {
     }
 
     // ========================= 내부 헬퍼 =========================
+
+    // peersByVid → 표시용 배열로 반영. 이름순 정렬로 표시 순서 안정화.
+    private func rebuildDiscovered() {
+        discoveredPeers = peersByVid.values.sorted { $0.displayName < $1.displayName }
+    }
 
     private func sendPendingLock(to peer: MCPeerID) {
         guard let packet = pendingLock else { return }   // DoorLockDraft 제거 — 직접 인코딩
