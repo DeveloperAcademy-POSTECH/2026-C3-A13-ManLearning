@@ -13,13 +13,11 @@ struct CaptureReviewData: Identifiable {
     let id = UUID()
     let fullImage: UIImage
     let croppedImage: UIImage
-    let boundingBox: CGRect?
 }
 
 final class DetectionViewModel: ObservableObject {
     @Published var guideStatus: StrokeColor = .idle
     @Published var latestConfidence: Float?
-    @Published var latestDetection: Detection?
 
     private let detector: YOLODetector?
     private let qualityAnalyzer = CropQualityAnalyzer()
@@ -59,23 +57,19 @@ final class DetectionViewModel: ObservableObject {
 
             let detected: Bool
             let confidence: Float?
-            let detection: Detection?
 
             if case .success(let found) = result {
                 detected = !found.isEmpty
                 confidence = found.first?.confidence
-                detection = found.first
             } else {
                 detected = false
                 confidence = nil
-                detection = nil
             }
 
             DispatchQueue.main.async {
                 self.isProcessing = false
                 self.isDetected = detected
                 self.latestConfidence = confidence
-                self.latestDetection = detection
                 self.updateStatus()
             }
         }
@@ -136,7 +130,6 @@ final class DetectionViewModel: ObservableObject {
         detectionStartTime = nil
         lastDetectionTime = nil
         passLostTime = nil
-        latestDetection = nil
         latestConfidence = nil
         qualityAnalyzer.reset()
         errorTimer?.invalidate()
@@ -159,12 +152,10 @@ struct ObjectDetectView: View {
                     viewModel.process(pixelBuffer: pixelBuffer)
                 },
                 imageHandler: { fullImage, croppedImage in
-                    let box = viewModel.latestDetection?.boundingBox
                     DispatchQueue.main.async {
                         reviewData = CaptureReviewData(
                             fullImage: fullImage,
-                            croppedImage: croppedImage,
-                            boundingBox: box
+                            croppedImage: croppedImage
                         )
                     }
                 }
@@ -232,7 +223,6 @@ struct ObjectDetectView: View {
                 CapturedImageReviewView(
                     image: data.fullImage,
                     croppedImage: data.croppedImage,
-                    boundingBox: data.boundingBox,
                     onRetake: {
                         reviewData = nil
                         viewModel.reset()

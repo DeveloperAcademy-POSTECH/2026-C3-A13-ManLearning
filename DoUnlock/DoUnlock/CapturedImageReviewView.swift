@@ -11,7 +11,6 @@ import UIKit
 struct CapturedImageReviewView: View {
     let image: UIImage
     let croppedImage: UIImage
-    let boundingBox: CGRect?
     let onRetake: () -> Void
 
     @State private var goToRegistration = false
@@ -21,7 +20,7 @@ struct CapturedImageReviewView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let boxRect = displayRect(for: boundingBox, in: geometry.size)
+            let boxRect = guideRect(in: geometry.size)
 
             ZStack {
                 Image(uiImage: image)
@@ -107,29 +106,6 @@ struct CapturedImageReviewView: View {
         .ignoresSafeArea()
     }
 
-    private func displayRect(for box: CGRect?, in size: CGSize) -> CGRect {
-        guard let box else { return guideRect(in: size) }
-        return screenRect(for: box, in: size)
-    }
-
-    private func screenRect(for box: CGRect, in size: CGSize) -> CGRect {
-        let imgSize = image.size
-        guard imgSize.width > 0, imgSize.height > 0 else { return guideRect(in: size) }
-
-        let scale = max(size.width / imgSize.width, size.height / imgSize.height)
-        let scaledWidth = imgSize.width * scale
-        let scaledHeight = imgSize.height * scale
-        let originX = (size.width - scaledWidth) / 2
-        let originY = (size.height - scaledHeight) / 2
-
-        return CGRect(
-            x: originX + box.minX * scaledWidth,
-            y: originY + box.minY * scaledHeight,
-            width: box.width * scaledWidth,
-            height: box.height * scaledHeight
-        )
-    }
-
     private func guideRect(in size: CGSize) -> CGRect {
         CGRect(
             x: size.width * (1 - widthRatio) / 2,
@@ -145,7 +121,6 @@ struct CapturedImageReviewView: View {
         CapturedImageReviewView(
             image: UIImage(named: "photo") ?? UIImage(),
             croppedImage: UIImage(named: "photo") ?? UIImage(),
-            boundingBox: CGRect(x: 0.2, y: 0.3, width: 0.6, height: 0.4),
             onRetake: {}
         )
     }
