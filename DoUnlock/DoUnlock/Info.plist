@@ -2,10 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- 근거리 공유용 Bonjour 서비스. NSLocalNetworkUsageDescription은 pbxproj의 INFOPLIST_KEY로 제공됨. -->
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_dounlock-share._tcp</string>
+		<string>_dounlock-share._udp</string>
+	</array>
 	<key>Privacy - Photo Library Usage Desciption</key>
 	<string></string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>비밀번호를 본인에게만 보여주기 위해 필요해요</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Pretendard-Black.otf</string>
