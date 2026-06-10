@@ -16,7 +16,7 @@ private struct ScanTabRootView: View {
 
     var body: some View {
         Group {
-            if doorLocks.isEmpty {
+            if doorLocks.isEmpty || router.forceRegisterMode {
                 ObjectDetectView()
             } else {
                 ObjectRecongnitionView()
@@ -24,6 +24,7 @@ private struct ScanTabRootView: View {
         }
         .onChange(of: router.finishCaptureFlowRequested) { _, requested in
             guard requested else { return }
+            router.forceRegisterMode = false
             router.selectedTab = .password
             router.finishCaptureFlowRequested = false
         }

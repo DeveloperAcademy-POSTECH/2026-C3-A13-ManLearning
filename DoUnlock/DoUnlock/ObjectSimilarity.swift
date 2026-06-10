@@ -17,15 +17,24 @@ struct ObjectSimilarityReference: Sendable, Identifiable, Hashable {
     let imageData: Data
 }
 
+struct MatchEntry: Sendable, Identifiable, Hashable {
+    let id: UUID
+    let name: String
+    let category: String
+    let score: Float
+}
+
 struct ObjectSimilarityResult: Sendable {
     // score: 라이브 카메라 프레임과 저장 이미지 중 가장 가까운 이미지의 cosine similarity 값입니다.
     // isMatched: score가 threshold 이상인지 여부이며, 화면의 초록/빨강 프레임 상태에 사용합니다.
     // bestMatchID/name/category: 가장 유사한 저장 도어락 정보입니다.
+    // allMatches: threshold 이상인 모든 매칭 항목 (score 내림차순).
     let score: Float
     let isMatched: Bool
     let bestMatchID: UUID?
     let bestMatchName: String?
     let bestMatchCategory: String?
+    let allMatches: [MatchEntry]
 }
 
 enum ObjectSimilarityError: LocalizedError, Sendable {
@@ -122,7 +131,8 @@ final class ObjectSimilarity: @unchecked Sendable {
                 isMatched: false,
                 bestMatchID: nil,
                 bestMatchName: nil,
-                bestMatchCategory: nil
+                bestMatchCategory: nil,
+                allMatches: []
             )
         }
 
@@ -133,31 +143,28 @@ final class ObjectSimilarity: @unchecked Sendable {
             cropRect: cropRect
         )
 
-        // 저장된 사진 여러 장 중 cosine similarity가 가장 높은 이미지를 최종 후보로 사용합니다.
-        let bestMatch = registeredEmbeddings
-            .map { registeredEmbedding in
-                (
-                    id: registeredEmbedding.id,
-                    name: registeredEmbedding.name,
-                    category: registeredEmbedding.category,
-                    score: Self.cosineSimilarity(
-                        liveEmbedding,
-                        registeredEmbedding.values
-                    )
-                )
-            }
-            .max { lhs, rhs in
-                lhs.score < rhs.score
-            }
+        // 저장된 사진 여러 장 모두의 cosine similarity를 계산합니다.
+        let scored = registeredEmbeddings.map { reg in
+            MatchEntry(
+                id: reg.id,
+                name: reg.name,
+                category: reg.category,
+                score: Self.cosineSimilarity(liveEmbedding, reg.values)
+            )
+        }
 
+        let bestMatch = scored.max { $0.score < $1.score }
         let score = bestMatch?.score ?? 0
+        // threshold 이상인 항목을 모두 모아 score 내림차순으로 정렬합니다.
+        let allMatches = scored.filter { $0.score >= threshold }.sorted { $0.score > $1.score }
 
         return ObjectSimilarityResult(
             score: score,
             isMatched: score >= threshold,
             bestMatchID: bestMatch?.id,
             bestMatchName: bestMatch?.name,
-            bestMatchCategory: bestMatch?.category
+            bestMatchCategory: bestMatch?.category,
+            allMatches: allMatches
         )
     }
 

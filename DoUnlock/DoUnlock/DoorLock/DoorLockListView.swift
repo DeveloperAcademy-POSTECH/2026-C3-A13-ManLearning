@@ -73,8 +73,8 @@ struct DoorLockListView: View {
     // MARK: - Sub views
 
     private var registerButton: some View {
-        // 등록은 항상 카메라 촬영을 거친다 → scan(카메라) 탭으로 전환.
         Button {
+            router.forceRegisterMode = true
             router.selectedTab = .scan
         } label: {
             HStack(spacing: 8) {
