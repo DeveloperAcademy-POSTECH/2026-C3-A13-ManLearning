@@ -8,6 +8,7 @@ struct NearbyPacket: Codable {
     var category: String
     var name:     String
     var password: String
+    var image:    Data?      // 도어락 사진. 옵셔널이라 사진 없는 경우도 안전. JSON에선 base64로 직렬화
 }
 
 // ========================= NearbyViewModel =========================

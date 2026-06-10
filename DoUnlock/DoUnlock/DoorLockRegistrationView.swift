@@ -284,7 +284,13 @@ struct DoorLockRegistrationView: View {
 
     // ==== 공유용 NearbyPacket (현재 폼 입력값 기준 — 미저장 상태도 공유 가능, DoorLockDraft 제거)
     private var lockForSharing: NearbyPacket {
-        return NearbyPacket(category: category, name: name, password: password)
+        // edit: 저장된 사진(lock.image), create: 촬영 플로우에서 넘어온 크롭본(cropimageData)
+        let imageData: Data
+        switch mode {
+        case .edit(let lock): imageData = lock.image
+        case .create:         imageData = cropimageData
+        }
+        return NearbyPacket(category: category, name: name, password: password, image: imageData)
     }
 
     /// 등록 모드: 새 DoorLock을 저장소에 추가하고 완료 화면으로 이동.
