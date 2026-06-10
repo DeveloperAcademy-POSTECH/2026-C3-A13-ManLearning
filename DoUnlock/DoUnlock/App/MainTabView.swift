@@ -18,7 +18,7 @@ private struct ScanTabRootView: View {
             if doorLocks.isEmpty {
                 ScanEmptyStateView()
             } else {
-                ObjectRecongnitionView()
+                ObjectRecognitionView()
             }
         }
     }

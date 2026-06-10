@@ -10,7 +10,7 @@ import SwiftUI
 @Observable
 final class AppRouter {
     enum Tab {
-        case scan      // 카메라(ObjectRecongnitionView) — 인식
+        case scan      // 카메라(ObjectRecognitionView) — 인식
         case password  // 도어락 목록(DoorLockListView)
     }
 

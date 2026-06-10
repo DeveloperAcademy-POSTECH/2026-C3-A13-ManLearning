@@ -1,5 +1,5 @@
 //
-//  ObjectRecongnitionView.swift
+//  ObjectRecognitionView.swift
 //  DoUnlock
 //
 //  Created by 정필규 on 6/3/26.
@@ -16,7 +16,7 @@ private struct LiveCameraFrame: @unchecked Sendable {
     let cropRect: CGRect
 }
 
-struct ObjectRecongnitionView: View {
+struct ObjectRecognitionView: View {
     @Query(sort: \DoorLock.updateAt, order: .reverse) private var doorLocks: [DoorLock]
 
     @State private var cameraStatus: StrokeColor = .idle
@@ -281,6 +281,6 @@ struct ObjectRecongnitionView: View {
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
 
-    return ObjectRecongnitionView()
+    return ObjectRecognitionView()
         .modelContainer(container)
 }
