@@ -9,30 +9,78 @@
 import SwiftUI
 import SwiftData
 
-/// scan 탭 루트: 등록된 DoorLock이 없으면 등록 화면, 있으면 인식 화면을 표시한다.
+/// scan 탭 루트: 등록 화면과 분리된 인식 전용 탭.
 private struct ScanTabRootView: View {
     @Query private var doorLocks: [DoorLock]
-    @Environment(AppRouter.self) private var router
 
     var body: some View {
         Group {
-            if doorLocks.isEmpty || router.forceRegisterMode {
-                ObjectDetectView()
+            if doorLocks.isEmpty {
+                ScanEmptyStateView()
             } else {
                 ObjectRecongnitionView()
             }
         }
-        .onChange(of: router.finishCaptureFlowRequested) { _, requested in
-            guard requested else { return }
-            router.forceRegisterMode = false
-            router.selectedTab = .password
-            router.finishCaptureFlowRequested = false
+    }
+}
+
+private struct ScanEmptyStateView: View {
+    @Environment(AppRouter.self) private var router
+
+    var body: some View {
+        ZStack {
+            Color.screenBg.ignoresSafeArea()
+
+            VStack(spacing: 18) {
+                ZStack {
+                    Circle()
+                        .fill(Color.brandPrimaryTint)
+                        .frame(width: 88, height: 88)
+
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 34, weight: .semibold))
+                        .foregroundStyle(Color.brandPrimary)
+
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(Color.brandPrimary)
+                        .background(Color.screenBg, in: Circle())
+                        .offset(x: 25, y: 24)
+                }
+
+                VStack(spacing: 8) {
+                    Text("등록된 도어락이 없어요")
+                        .textStyle(.heading)
+                        .foregroundStyle(Color.textPrimary)
+
+                    Text("카메라로 새 도어락을 먼저 등록해 주세요")
+                        .textStyle(.subHeading)
+                        .foregroundStyle(Color.textMuted)
+                        .multilineTextAlignment(.center)
+                }
+
+                Button {
+                    router.isDoorLockRegistrationPresented = true
+                } label: {
+                    Text("새 도어락 등록하기")
+                        .textStyle(.buttonLarge)
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 53)
+                        .background(Color.brandPrimary)
+                        .clipShape(Capsule())
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+            }
         }
     }
 }
 
 struct MainTabView: View {
+    @Query private var doorLocks: [DoorLock]
     @State private var router = AppRouter()
+    @State private var didPresentInitialRegistration = false
 
     var body: some View {
         @Bindable var router = router
@@ -52,6 +100,30 @@ struct MainTabView: View {
             .tag(AppRouter.Tab.password)
         }
         .environment(router)
+        .fullScreenCover(
+            isPresented: $router.isDoorLockRegistrationPresented,
+            onDismiss: {
+                moveToPendingTabAfterRegistrationDismiss()
+            }
+        ) {
+            RegistrationFlowView()
+                .environment(router)
+        }
+        .task {
+            presentInitialRegistrationIfNeeded()
+        }
+    }
+
+    private func presentInitialRegistrationIfNeeded() {
+        guard !didPresentInitialRegistration, doorLocks.isEmpty else { return }
+        didPresentInitialRegistration = true
+        router.isDoorLockRegistrationPresented = true
+    }
+
+    private func moveToPendingTabAfterRegistrationDismiss() {
+        guard let pendingTab = router.pendingTabAfterRegistrationDismiss else { return }
+        router.pendingTabAfterRegistrationDismiss = nil
+        router.selectedTab = pendingTab
     }
 }
 
