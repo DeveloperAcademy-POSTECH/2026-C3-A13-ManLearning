@@ -61,10 +61,15 @@ struct OnboardingPageView: View {
 
                     Spacer().frame(height: 60)
 
-                    // 좌우 패딩 없이 화면 끝까지 차지: 전환 중 옆 페이지가 패딩 영역에 가려지지 않음
-                    pager(pageWidth: pageWidth)
+                    // 콘텐츠 + 아래 빈 여백을 한 번에 드래그 영역으로 묶음 (프로그레스 바 ~ 다음 버튼 사이 전체)
+                    VStack(spacing: 0) {
+                        // 좌우 패딩 없이 화면 끝까지 차지: 전환 중 옆 페이지가 패딩 영역에 가려지지 않음
+                        pager(pageWidth: pageWidth)
 
-                    Spacer()
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                    .gesture(swipeGesture(pageWidth: pageWidth))
 
                     // 다음 버튼: 콘텐츠가 슬라이드되는 동안에도 위치 고정
                     nextButton
@@ -101,8 +106,6 @@ struct OnboardingPageView: View {
         .frame(width: pageWidth, alignment: .leading)
         .clipped()
         .animation(.easeInOut(duration: 0.32), value: currentStep)
-        .contentShape(Rectangle())
-        .gesture(swipeGesture(pageWidth: pageWidth))
     }
 
     private func pageContent(_ page: OnboardingPage) -> some View {
