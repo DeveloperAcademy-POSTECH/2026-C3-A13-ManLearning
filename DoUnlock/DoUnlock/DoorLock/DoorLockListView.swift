@@ -19,6 +19,9 @@ struct DoorLockListView: View {
     // 등록 버튼이 scan(카메라) 탭으로 전환하는 데 사용.
     @Environment(AppRouter.self) private var router
 
+    // 스와이프 삭제 시 확인 알럿 대상. nil이 아니면 알럿 표시.
+    @State private var lockToDelete: DoorLock?
+
     var body: some View {
         ZStack {
             Color.screenBg.ignoresSafeArea()
@@ -29,36 +32,43 @@ struct DoorLockListView: View {
                     .foregroundStyle(Color.textPrimary)
                     .padding(.top, 38)
 
-                ScrollView {
-                    LazyVStack(spacing: 20) {
-                        ForEach(locks) { lock in
-                            NavigationLink {
-                                // DoorLock은 참조 타입 → 수정뷰에서 직접 변경하면 @Query가 자동 반영.
-                                // 등록뷰가 자체 NearbyViewModel을 소유하므로 별도 주입 불필요.
-                                DoorLockRegistrationView(mode: .edit(lock))
+                List {
+                    ForEach(locks) { lock in
+                        DoorLockCard(lock: lock)
+                            // NavigationLink를 투명하게 카드 뒤에 깔아 탭/네비게이션만 살리고
+                            // List가 자동으로 붙이는 오른쪽 disclosure 꺽쇠는 숨김.
+                            // DoorLock은 참조 타입 → 수정뷰에서 직접 변경하면 @Query가 자동 반영.
+                            // 등록뷰가 자체 NearbyViewModel을 소유하므로 별도 주입 불필요.
+                            .background(
+                                NavigationLink("") {
+                                    DoorLockRegistrationView(mode: .edit(lock))
+                                }
+                                .opacity(0)
+                            )
+                        // 커스텀 카드 디자인 유지: 기본 구분선/배경/인셋 제거 후 screenBg 노출.
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                        // 옆으로 당겨 삭제 → 즉시 삭제하지 않고 확인 알럿으로 넘김.
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                lockToDelete = lock
                             } label: {
-                                DoorLockCard(lock: lock)
+                                Label("삭제", systemImage: "trash")
                             }
-                            .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 35)
-                    .padding(.bottom, 20)
                 }
+                .listStyle(.plain)
+                .listRowSpacing(20)               // 기존 LazyVStack spacing 20 대체
+                .scrollContentBackground(.hidden) // List 기본 배경 숨김 → 뒤 screenBg 노출
+                .contentMargins(.vertical, 0, for: .scrollContent) // List 자체 상하 인셋 제거
+                .padding(.top, 35)                // 원본 LazyVStack top 35와 동일하게 복원
 
                 registerButton
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
             }
-
-            #if DEBUG
-            // ==== 수신 시트 수동 트리거 (디버그 전용)
-            Button("수신 시트") { nearbyVM.showReceiveSheet = true }
-                .font(.caption)
-                .padding(8)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-            #endif
         }
         // 화면 자체 헤더("등록된 도어락 목록")가 있으므로 NavigationStack 기본 바와 중복 방지.
         .toolbar(.hidden, for: .navigationBar)
@@ -79,6 +89,19 @@ struct DoorLockListView: View {
             )
             .presentationDetents([.height(490)]) // Figma 박스(484) ≈ 화면 중간, 단일 detent라 더 못 올라감
             .presentationDragIndicator(.visible)
+        }
+        // ==== 스와이프 삭제 확인. lockToDelete != nil 이면 표시.
+        .alert("도어락 삭제", isPresented: Binding(
+            get: { lockToDelete != nil },
+            set: { if !$0 { lockToDelete = nil } }
+        ), presenting: lockToDelete) { lock in
+            Button("삭제", role: .destructive) {
+                modelContext.delete(lock)  // @Query라 삭제 시 목록 자동 갱신
+                lockToDelete = nil
+            }
+            Button("취소", role: .cancel) { lockToDelete = nil }
+        } message: { lock in
+            Text("'\(lock.name)'을(를) 삭제할까요? 삭제하면 되돌릴 수 없습니다.")
         }
     }
 
