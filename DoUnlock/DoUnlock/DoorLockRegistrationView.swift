@@ -51,6 +51,12 @@ struct DoorLockRegistrationView: View {
         }
     }
 
+    /// 이름·비밀번호는 필수값. 둘 다 공백 제외 비어있지 않아야 등록/수정 가능.
+    private var isFormValid: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty &&
+        !password.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             Color.screenBg.ignoresSafeArea()
@@ -111,6 +117,7 @@ struct DoorLockRegistrationView: View {
             } label: {
                 bottomButtonLabel("등록 완료하기")
             }
+            .disabled(!isFormValid)
         case .edit:
             Button {
                 save()
@@ -118,6 +125,7 @@ struct DoorLockRegistrationView: View {
             } label: {
                 bottomButtonLabel("수정하기")
             }
+            .disabled(!isFormValid)
         }
     }
 
@@ -129,6 +137,8 @@ struct DoorLockRegistrationView: View {
             .frame(height: 53)
             .background(Color.brandPrimary)
             .clipShape(Capsule())
+            // 이름·비밀번호 미입력 시 비활성 상태를 시각적으로 흐리게.
+            .opacity(isFormValid ? 1 : 0.4)
     }
     
     private var navBar: some View {
@@ -274,12 +284,19 @@ struct DoorLockRegistrationView: View {
 
     // ==== 공유용 NearbyPacket (현재 폼 입력값 기준 — 미저장 상태도 공유 가능, DoorLockDraft 제거)
     private var lockForSharing: NearbyPacket {
-        return NearbyPacket(category: category, name: name, password: password)
+        // edit: 저장된 사진(lock.image), create: 촬영 플로우에서 넘어온 크롭본(cropimageData)
+        let imageData: Data
+        switch mode {
+        case .edit(let lock): imageData = lock.image
+        case .create:         imageData = cropimageData
+        }
+        return NearbyPacket(category: category, name: name, password: password, image: imageData)
     }
 
     /// 등록 모드: 새 DoorLock을 저장소에 추가하고 완료 화면으로 이동.
     /// 이미지는 촬영 플로우에서 넘어온 크롭본(cropimageData). 촬영 미연결 진입은 빈 Data() 플레이스홀더.
     private func create() {
+        guard isFormValid else { return }
         let lock = DoorLock(category: category, name: name, password: password, image: cropimageData)
         modelContext.insert(lock)
         didComplete = true
@@ -288,7 +305,7 @@ struct DoorLockRegistrationView: View {
     /// 수정 모드 저장. DoorLock은 참조 타입이라 객체를 직접 수정하면 SwiftData가 autosave.
     /// id/createAt/image는 보존하고 입력값만 갱신, updateAt은 현재로(목록 날짜 라벨 기준).
     private func save() {
-        guard case .edit(let lock) = mode else { return }
+        guard isFormValid, case .edit(let lock) = mode else { return }
         lock.category = category
         lock.name = name
         lock.password = password

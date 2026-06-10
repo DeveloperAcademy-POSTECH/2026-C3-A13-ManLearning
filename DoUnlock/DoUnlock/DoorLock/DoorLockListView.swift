@@ -83,7 +83,7 @@ struct DoorLockListView: View {
                 nearbyVM: nearbyVM,
                 onAccept: { packet in
                     // ==== NearbyPacket → DoorLock 변환 후 SwiftData에 저장 (DoorLockDraft 제거)
-                    let lock = DoorLock(category: packet.category, name: packet.name, password: packet.password, image: Data())
+                    let lock = DoorLock(category: packet.category, name: packet.name, password: packet.password, image: packet.image ?? Data())
                     modelContext.insert(lock)
                 }
             )
