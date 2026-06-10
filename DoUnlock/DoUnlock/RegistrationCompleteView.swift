@@ -110,7 +110,7 @@ struct RegistrationCompleteView: View {
     private var actionButtons: some View {
         VStack(spacing: 8) {
             Button {
-                // 촬영 cover를 닫고 목록(password) 탭으로 전환. cover는 ObjectDetectView가 소유하므로 신호로 위임.
+                // 등록 플로우를 닫고 목록(password) 탭으로 전환하도록 상위 flow에 신호를 보낸다.
                 router.finishCaptureFlowRequested = true
             } label: {
                 Text("등록된 목록 확인하기")

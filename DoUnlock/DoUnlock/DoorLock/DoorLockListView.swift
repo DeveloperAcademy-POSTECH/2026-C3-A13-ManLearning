@@ -109,8 +109,7 @@ struct DoorLockListView: View {
 
     private var registerButton: some View {
         Button {
-            router.forceRegisterMode = true
-            router.selectedTab = .scan
+            router.isDoorLockRegistrationPresented = true
         } label: {
             HStack(spacing: 8) {
                 Image(systemName: "plus")
