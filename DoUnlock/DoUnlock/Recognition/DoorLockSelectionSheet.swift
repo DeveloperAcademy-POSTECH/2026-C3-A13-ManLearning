@@ -2,7 +2,7 @@
 //  DoorLockSelectionSheet.swift
 //  DoUnlock
 //
-//  유사한 도어락이 2개 이상일 때 나타나는 선택 시트.
+//  유사한 잠금장치이 2개 이상일 때 나타나는 선택 시트.
 //  항목을 탭하면 Face ID를 수행하고, 성공 시 onAuthenticated 콜백을 호출한다.
 //
 
@@ -62,7 +62,7 @@ struct DoorLockSelectionSheet: View {
                 .padding(.bottom, 11)
 
             // 타이틀 영역 (Figma: 44px height, Pretendard Bold 20px, #1A1A1A)
-            Text("유사한 도어락 선택")
+            Text("유사한 잠금장치 선택")
                 .font(.navTitle)
                 .foregroundStyle(Color.textPrimary)
                 .frame(height: 44)
@@ -144,8 +144,8 @@ struct DoorLockSelectionSheet: View {
 
 #Preview {
     let locks = [
-        DoorLock(category: "도어락", name: "우리집 현관", password: "1234", image: Data()),
-        DoorLock(category: "도어락", name: "사무실 입구", password: "5678", image: Data()),
+        DoorLock(category: "잠금장치", name: "우리집 현관", password: "1234", image: Data()),
+        DoorLock(category: "잠금장치", name: "사무실 입구", password: "5678", image: Data()),
     ]
     let matches = locks.map { MatchEntry(id: $0.id, name: $0.name, category: $0.category, score: 0.85) }
 

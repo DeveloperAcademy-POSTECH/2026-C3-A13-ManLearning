@@ -3,7 +3,7 @@
 //  DoUnlock
 //
 //  "주변기기로 공유" 시트. (Figma 466:2417 목록 / 480:3465 전송 완료)
-//  도어락 정보 수정 화면 우상단 공유 버튼에서 아래에서 위로 올라옵니다.
+//  잠금장치 정보 수정 화면 우상단 공유 버튼에서 아래에서 위로 올라옵니다.
 //  탐색된 기기 카드를 탭하면 실제 전송 후 "전송 완료" 상태로 전환됩니다.
 //
 //  실제 근거리 통신(MultipeerConnectivity)이 NearbyViewModel 을 통해 연결됩니다.
@@ -13,7 +13,7 @@ import MultipeerConnectivity
 import SwiftUI
 
 struct DeviceShareSheet: View {
-    // ==== 전송할 도어락 패킷 (DoorLockDraft 제거 → NearbyPacket 으로 변경)
+    // ==== 전송할 잠금장치 패킷 (DoorLockDraft 제거 → NearbyPacket 으로 변경)
     let lock: NearbyPacket
     // ==== Nearby ViewModel (environmentObject 로 주입)
     @EnvironmentObject private var nearbyVM: NearbyViewModel
@@ -69,7 +69,7 @@ struct ShareDeviceCard: View {
                     Text(peer.displayName)
                         .textStyle(.cardTitle)
                         .foregroundStyle(Color.textPrimary)
-                    Text("도어락 정보 공유")
+                    Text("잠금장치 정보 공유")
                         .textStyle(.cardSubtitle)
                         .foregroundStyle(Color.textMuted)
                 }
@@ -117,7 +117,7 @@ struct DeviceShareCompleteView: View {
                 Text("전송 완료")
                     .textStyle(.completionTitle)
                     .foregroundStyle(Color.textPrimary)
-                Text("상대방의 도어락 목록에 추가되었어요")
+                Text("상대방의 잠금장치 목록에 추가되었어요")
                     .textStyle(.subHeading)
                     .foregroundStyle(Color.textMuted)
                     .multilineTextAlignment(.center)
@@ -143,7 +143,7 @@ struct DeviceShareCompleteView: View {
 
 #Preview("Sheet") {
     // ==== 프리뷰: 목업 NearbyPacket 사용 (DoorLockDraft 제거)
-    DeviceShareSheet(lock: NearbyPacket(category: "도어락", name: "우리집", password: "1234"))
+    DeviceShareSheet(lock: NearbyPacket(category: "잠금장치", name: "우리집", password: "1234"))
         .environmentObject(NearbyViewModel())
 }
 

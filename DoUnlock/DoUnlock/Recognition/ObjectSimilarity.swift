@@ -27,7 +27,7 @@ struct MatchEntry: Sendable, Identifiable, Hashable {
 struct ObjectSimilarityResult: Sendable {
     // score: 라이브 카메라 프레임과 저장 이미지 중 가장 가까운 이미지의 cosine similarity 값입니다.
     // isMatched: score가 threshold 이상인지 여부이며, 화면의 초록/빨강 프레임 상태에 사용합니다.
-    // bestMatchID/name/category: 가장 유사한 저장 도어락 정보입니다.
+    // bestMatchID/name/category: 가장 유사한 저장 잠금장치 정보입니다.
     // allMatches: threshold 이상인 모든 매칭 항목 (score 내림차순).
     let score: Float
     let isMatched: Bool
