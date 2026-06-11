@@ -50,7 +50,7 @@ struct RegistrationCompleteView: View {
     private var textAndCard: some View {
         VStack(spacing: 28) {
             VStack(spacing: 12) {
-                Text("도어락 등록 완료")
+                Text("잠금장치 등록 완료")
                     .textStyle(.completionTitle)
                     .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)
@@ -147,7 +147,7 @@ struct RegistrationCompleteView: View {
 
 #Preview {
     NavigationStack {
-        RegistrationCompleteView(name: "우리집", category: "도어락", imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!)
+        RegistrationCompleteView(name: "우리집", category: "잠금장치", imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!)
     }
     .environment(AppRouter())
 }

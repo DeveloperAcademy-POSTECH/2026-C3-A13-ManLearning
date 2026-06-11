@@ -2,7 +2,7 @@
 //  MainTabView.swift
 //  DoUnlock
 //
-//  앱 메인 탭바: scan(카메라) / password(도어락 목록).
+//  앱 메인 탭바: scan(카메라) / password(잠금장치 목록).
 //  권한·온보딩 완료 후 진입하는 루트 화면.
 //
 
@@ -49,11 +49,11 @@ private struct ScanEmptyStateView: View {
                 }
 
                 VStack(spacing: 8) {
-                    Text("등록된 도어락이 없어요")
+                    Text("등록된 잠금장치이 없어요")
                         .textStyle(.heading)
                         .foregroundStyle(Color.textPrimary)
 
-                    Text("카메라로 새 도어락을 먼저 등록해 주세요")
+                    Text("카메라로 새 잠금장치을 먼저 등록해 주세요")
                         .textStyle(.subHeading)
                         .foregroundStyle(Color.textMuted)
                         .multilineTextAlignment(.center)
@@ -62,7 +62,7 @@ private struct ScanEmptyStateView: View {
                 Button {
                     router.isDoorLockRegistrationPresented = true
                 } label: {
-                    Text("새 도어락 등록하기")
+                    Text("새 잠금장치 등록하기")
                         .textStyle(.buttonLarge)
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
@@ -92,7 +92,7 @@ struct MainTabView: View {
             .tabItem { Label("scan", systemImage: "camera.fill") }
             .tag(AppRouter.Tab.scan)
 
-            // 도어락 목록 (Figma: 자물쇠 + password)
+            // 잠금장치 목록 (Figma: 자물쇠 + password)
             NavigationStack {
                 DoorLockListView()
             }

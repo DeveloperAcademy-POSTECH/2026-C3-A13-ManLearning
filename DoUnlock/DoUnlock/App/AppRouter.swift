@@ -11,7 +11,7 @@ import SwiftUI
 final class AppRouter {
     enum Tab {
         case scan      // 카메라(ObjectRecognitionView) — 인식
-        case password  // 도어락 목록(DoorLockListView)
+        case password  // 잠금장치 목록(DoorLockListView)
     }
 
     var selectedTab: Tab = .scan
@@ -20,7 +20,7 @@ final class AppRouter {
     /// RegistrationFlowView가 이 값을 관찰해 등록 cover를 닫고 false로 리셋한다.
     var finishCaptureFlowRequested = false
 
-    /// 목록 화면의 "새 도어락 등록하기"에서 등록 촬영 플로우를 전체 화면으로 띄울 때 사용한다.
+    /// 목록 화면의 "새 잠금장치 등록하기"에서 등록 촬영 플로우를 전체 화면으로 띄울 때 사용한다.
     var isDoorLockRegistrationPresented = false
 
     /// 등록 완료 화면 "바로 인식해보기"에서 등록 플로우를 끝내고 scan 탭 인식 화면으로 보내야 함을 알리는 신호.

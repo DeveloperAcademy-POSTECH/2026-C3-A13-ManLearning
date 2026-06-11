@@ -13,9 +13,9 @@ DoUnlock/DoUnlock/
 ├── DesignTokens/    # 디자인 시스템 (색·폰트·텍스트 스타일 — 규칙은 내부 README 참고)
 ├── Camera/          # 등록·인식 화면이 공유하는 카메라/가이드박스
 ├── Onboarding/      # 권한 요청 + 온보딩 3페이지
-├── Registration/    # 도어락 등록 플로우 (촬영 → 리뷰 → 폼 → 완료) + 등록 전용 YOLO 탐지
-├── Recognition/     # 도어락 인식 플로우 (유사도 비교 → Face ID → 비밀번호 표시)
-├── LockList/        # 등록된 도어락 목록
+├── Registration/    # 잠금장치 등록 플로우 (촬영 → 리뷰 → 폼 → 완료) + 등록 전용 YOLO 탐지
+├── Recognition/     # 잠금장치 인식 플로우 (유사도 비교 → Face ID → 비밀번호 표시)
+├── LockList/        # 등록된 잠금장치 목록
 ├── Share/           # 근거리 공유 (MultipeerConnectivity + 보내기/받기 시트)
 ├── Fonts/           # Pretendard .otf
 ├── model/           # Git 제외: 팀에서 별도 공유받은 Core ML 모델 파일을 로컬에 배치

@@ -2,7 +2,7 @@
 //  DoorLockCard.swift
 //  DoUnlock
 //
-//  등록된 도어락 목록의 카드 셀. (Figma 43:3172 / 52:1323)
+//  등록된 잠금장치 목록의 카드 셀. (Figma 43:3172 / 52:1323)
 //
 
 import SwiftUI
@@ -65,7 +65,7 @@ struct DoorLockCard: View {
 }
 
 #Preview {
-    DoorLockCard(lock: DoorLock(category: "도어락", name: "우리집", password: "1234", image: Data()))
+    DoorLockCard(lock: DoorLock(category: "잠금장치", name: "우리집", password: "1234", image: Data()))
         .padding()
         .background(Color.screenBg)
 }

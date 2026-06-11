@@ -74,7 +74,7 @@ struct ObjectRecognitionView: View {
         .task(id: registeredLockSignature) {
             prepareSimilarity()
         }
-        // 유사한 도어락이 2개 이상일 때 선택 시트
+        // 유사한 잠금장치이 2개 이상일 때 선택 시트
         .sheet(isPresented: $showSelectionSheet) {
             DoorLockSelectionSheet(
                 matches: pendingMatches,
