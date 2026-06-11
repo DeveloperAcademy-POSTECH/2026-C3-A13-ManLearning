@@ -19,6 +19,9 @@ private struct LiveCameraFrame: @unchecked Sendable {
 struct ObjectRecognitionView: View {
     @Query(sort: \DoorLock.updateAt, order: .reverse) private var doorLocks: [DoorLock]
 
+    @Environment(AppRouter.self) private var router
+    @Environment(\.scenePhase) private var scenePhase
+
     @State private var cameraStatus: StrokeColor = .idle
     @State private var objectSimilarity: ObjectSimilarity?
     @State private var isPreparingSimilarity = true
@@ -38,10 +41,18 @@ struct ObjectRecognitionView: View {
 
     private let comparisonInterval: TimeInterval = 1
 
+    /// 카메라 세션을 켤 조건. 이 값이 false가 되면 CameraPreviewView가 세션을 멈춰
+    /// 카메라 점유(초록 LED)를 해제한다.
+    private var isCameraActive: Bool {
+        router.selectedTab == .scan
+            && scenePhase == .active
+            && !router.isDoorLockRegistrationPresented
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             CameraPreviewView(
-                isActive: true,
+                isActive: isCameraActive,
                 captureImageTrigger: false,
                 pixelHandler: { pixelBuffer, cropRect in
                     Task { @MainActor in

@@ -10,6 +10,11 @@
 	</array>
 	<key>Privacy - Photo Library Usage Desciption</key>
 	<string></string>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>LaunchBackground</string>
+	</dict>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Pretendard-Black.otf</string>
