@@ -11,86 +11,30 @@ import SwiftData
 
 /// scan 탭 루트: 등록 화면과 분리된 인식 전용 탭.
 private struct ScanTabRootView: View {
-    @Query private var doorLocks: [DoorLock]
-
     var body: some View {
-        Group {
-            if doorLocks.isEmpty {
-                ScanEmptyStateView()
-            } else {
-                ObjectRecognitionView()
-            }
-        }
-    }
-}
-
-private struct ScanEmptyStateView: View {
-    @Environment(AppRouter.self) private var router
-
-    var body: some View {
-        ZStack {
-            Color.screenBg.ignoresSafeArea()
-
-            VStack(spacing: 18) {
-                ZStack {
-                    Circle()
-                        .fill(Color.brandPrimaryTint)
-                        .frame(width: 88, height: 88)
-
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 34, weight: .semibold))
-                        .foregroundStyle(Color.brandPrimary)
-
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(Color.brandPrimary)
-                        .background(Color.screenBg, in: Circle())
-                        .offset(x: 25, y: 24)
-                }
-
-                VStack(spacing: 8) {
-                    Text("등록된 잠금장치이 없어요")
-                        .textStyle(.heading)
-                        .foregroundStyle(Color.textPrimary)
-
-                    Text("카메라로 새 잠금장치을 먼저 등록해 주세요")
-                        .textStyle(.subHeading)
-                        .foregroundStyle(Color.textMuted)
-                        .multilineTextAlignment(.center)
-                }
-
-                Button {
-                    router.isDoorLockRegistrationPresented = true
-                } label: {
-                    Text("새 잠금장치 등록하기")
-                        .textStyle(.buttonLarge)
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 53)
-                        .background(Color.brandPrimary)
-                        .clipShape(Capsule())
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 14)
-            }
-        }
+        ObjectRecognitionView()
     }
 }
 
 struct MainTabView: View {
     @Query private var doorLocks: [DoorLock]
     @State private var router = AppRouter()
-    @State private var didPresentInitialRegistration = false
+
+    private var hasRegisteredDoorLocks: Bool {
+        doorLocks.isEmpty == false
+    }
 
     var body: some View {
         @Bindable var router = router
 
         TabView(selection: $router.selectedTab) {
-            NavigationStack {
-                ScanTabRootView()
+            if hasRegisteredDoorLocks {
+                NavigationStack {
+                    ScanTabRootView()
+                }
+                .tabItem { Label("scan", systemImage: "camera.fill") }
+                .tag(AppRouter.Tab.scan)
             }
-            .tabItem { Label("scan", systemImage: "camera.fill") }
-            .tag(AppRouter.Tab.scan)
 
             // 잠금장치 목록 (Figma: 자물쇠 + password)
             NavigationStack {
@@ -109,21 +53,17 @@ struct MainTabView: View {
             RegistrationFlowView()
                 .environment(router)
         }
-        .task {
-            presentInitialRegistrationIfNeeded()
+        .onChange(of: hasRegisteredDoorLocks) { _, hasLocks in
+            if hasLocks == false {
+                router.selectedTab = .password
+            }
         }
-    }
-
-    private func presentInitialRegistrationIfNeeded() {
-        guard !didPresentInitialRegistration, doorLocks.isEmpty else { return }
-        didPresentInitialRegistration = true
-        router.isDoorLockRegistrationPresented = true
     }
 
     private func moveToPendingTabAfterRegistrationDismiss() {
         guard let pendingTab = router.pendingTabAfterRegistrationDismiss else { return }
         router.pendingTabAfterRegistrationDismiss = nil
-        router.selectedTab = pendingTab
+        router.selectedTab = pendingTab == .scan && doorLocks.isEmpty ? .password : pendingTab
     }
 }
 

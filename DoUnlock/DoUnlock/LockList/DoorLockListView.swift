@@ -16,7 +16,7 @@ struct DoorLockListView: View {
     @StateObject private var nearbyVM = NearbyViewModel()
     // ==== 수신된 잠금장치을 SwiftData에 저장하기 위해 modelContext 필요
     @Environment(\.modelContext) private var modelContext
-    // 등록 버튼이 scan(카메라) 탭으로 전환하는 데 사용.
+    // 하단 등록 버튼이 등록 플로우를 띄울 때 사용.
     @Environment(AppRouter.self) private var router
 
     // 스와이프 삭제 시 확인 알럿 대상. nil이 아니면 알럿 표시.
@@ -32,38 +32,14 @@ struct DoorLockListView: View {
                     .foregroundStyle(Color.textPrimary)
                     .padding(.top, 38)
 
-                List {
-                    ForEach(locks) { lock in
-                        DoorLockCard(lock: lock)
-                            // NavigationLink를 투명하게 카드 뒤에 깔아 탭/네비게이션만 살리고
-                            // List가 자동으로 붙이는 오른쪽 disclosure 꺽쇠는 숨김.
-                            // DoorLock은 참조 타입 → 수정뷰에서 직접 변경하면 @Query가 자동 반영.
-                            // 등록뷰가 자체 NearbyViewModel을 소유하므로 별도 주입 불필요.
-                            .background(
-                                NavigationLink("") {
-                                    DoorLockRegistrationView(mode: .edit(lock))
-                                }
-                                .opacity(0)
-                            )
-                        // 커스텀 카드 디자인 유지: 기본 구분선/배경/인셋 제거 후 screenBg 노출.
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-                        // 옆으로 당겨 삭제 → 즉시 삭제하지 않고 확인 알럿으로 넘김.
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                lockToDelete = lock
-                            } label: {
-                                Label("삭제", systemImage: "trash")
-                            }
-                        }
-                    }
+                if locks.isEmpty {
+                    emptyStateView
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 35)
+                } else {
+                    lockList
                 }
-                .listStyle(.plain)
-                .listRowSpacing(20)               // 기존 LazyVStack spacing 20 대체
-                .scrollContentBackground(.hidden) // List 기본 배경 숨김 → 뒤 screenBg 노출
-                .contentMargins(.vertical, 0, for: .scrollContent) // List 자체 상하 인셋 제거
-                .padding(.top, 35)                // 원본 LazyVStack top 35와 동일하게 복원
 
                 registerButton
                     .padding(.horizontal, 16)
@@ -106,6 +82,54 @@ struct DoorLockListView: View {
     }
 
     // MARK: - Sub views
+
+    private var emptyStateView: some View {
+        VStack(spacing: 8) {
+            Text("등록된 잠금장치가 없어요.")
+                .textStyle(.heading)
+                .foregroundStyle(Color.textPrimary)
+
+            Text("하단 버튼으로 새 잠금장치를 등록해 주세요.")
+                .textStyle(.subHeading)
+                .foregroundStyle(Color.textMuted)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    private var lockList: some View {
+        List {
+            ForEach(locks) { lock in
+                DoorLockCard(lock: lock)
+                    // NavigationLink를 투명하게 카드 뒤에 깔아 탭/네비게이션만 살리고
+                    // List가 자동으로 붙이는 오른쪽 disclosure 꺽쇠는 숨김.
+                    // DoorLock은 참조 타입 → 수정뷰에서 직접 변경하면 @Query가 자동 반영.
+                    // 등록뷰가 자체 NearbyViewModel을 소유하므로 별도 주입 불필요.
+                    .background(
+                        NavigationLink("") {
+                            DoorLockRegistrationView(mode: .edit(lock))
+                        }
+                        .opacity(0)
+                    )
+                // 커스텀 카드 디자인 유지: 기본 구분선/배경/인셋 제거 후 screenBg 노출.
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                // 옆으로 당겨 삭제 → 즉시 삭제하지 않고 확인 알럿으로 넘김.
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        lockToDelete = lock
+                    } label: {
+                        Label("삭제", systemImage: "trash")
+                    }
+                }
+            }
+        }
+        .listStyle(.plain)
+        .listRowSpacing(20)               // 기존 LazyVStack spacing 20 대체
+        .scrollContentBackground(.hidden) // List 기본 배경 숨김 → 뒤 screenBg 노출
+        .contentMargins(.vertical, 0, for: .scrollContent) // List 자체 상하 인셋 제거
+        .padding(.top, 35)                // 원본 LazyVStack top 35와 동일하게 복원
+    }
 
     private var registerButton: some View {
         Button {

@@ -14,7 +14,7 @@ final class AppRouter {
         case password  // 잠금장치 목록(DoorLockListView)
     }
 
-    var selectedTab: Tab = .scan
+    var selectedTab: Tab = .password
 
     /// 등록 완료 화면("목록 확인하기")에서 등록 플로우를 끝내고 목록으로 보내야 함을 알리는 신호.
     /// RegistrationFlowView가 이 값을 관찰해 등록 cover를 닫고 false로 리셋한다.

@@ -9,14 +9,14 @@ import SwiftUI
 import AVFoundation
 
 struct ContentView: View {
-    // 첫 실행 여부 영속. true면 권한/온보딩을 건너뛰고 곧장 메인 탭바(카메라)로 진입.
+    // 첫 실행 여부 영속. true면 권한/온보딩을 건너뛰고 곧장 메인 탭바로 진입.
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     
     @State private var hasGrantedPermissions = false
 
     var body: some View {
         if hasCompletedOnboarding {
-            // 온보딩 완료 후(또는 재실행): 메인 탭바 — 기본 scan(카메라) 탭
+            // 온보딩 완료 후(또는 재실행): 메인 탭바 — 기본 password(목록) 탭
             MainTabView()
         } else if !hasGrantedPermissions {
             PermissionSetupView {
@@ -24,7 +24,7 @@ struct ContentView: View {
             }
         } else {
             OnboardingPageView {
-                // 마지막 페이지 "등록하러 가기" → 온보딩 완료 처리 → MainTabView(카메라)
+                // 마지막 페이지 "등록하러 가기" → 온보딩 완료 처리 → MainTabView(목록)
                 hasCompletedOnboarding = true
             }
         }

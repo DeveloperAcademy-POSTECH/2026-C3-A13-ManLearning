@@ -26,7 +26,7 @@ struct DoorLockRegistrationView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    private let categories = ["잠금장치", "자전거", "캐리어", "기타"]
+    private let categories = ["도어락", "자전거", "캐리어", "기타"]
 
     init(mode: Mode = .create, cropimageData: Data = Data(), fullimageData: Data = Data()) {
         self.mode = mode
@@ -34,7 +34,7 @@ struct DoorLockRegistrationView: View {
         self.fullimageData = fullimageData
         switch mode {
         case .create:
-            _category = State(initialValue: "잠금장치")
+            _category = State(initialValue: "도어락")
             _name = State(initialValue: "")
             _password = State(initialValue: "")
         case .edit(let lock):
