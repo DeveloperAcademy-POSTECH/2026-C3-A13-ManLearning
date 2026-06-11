@@ -85,11 +85,11 @@ struct DoorLockListView: View {
 
     private var emptyStateView: some View {
         VStack(spacing: 8) {
-            Text("등록된 잠금장치가 없어요.")
+            Text("등록된 잠금장치가 없어요")
                 .textStyle(.heading)
                 .foregroundStyle(Color.textPrimary)
 
-            Text("하단 버튼으로 새 잠금장치를 등록해 주세요.")
+            Text("하단 버튼으로 새 잠금장치를 등록해 주세요")
                 .textStyle(.subHeading)
                 .foregroundStyle(Color.textMuted)
                 .multilineTextAlignment(.center)

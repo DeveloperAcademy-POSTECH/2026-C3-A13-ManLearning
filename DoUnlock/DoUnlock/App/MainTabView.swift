@@ -17,24 +17,17 @@ private struct ScanTabRootView: View {
 }
 
 struct MainTabView: View {
-    @Query private var doorLocks: [DoorLock]
     @State private var router = AppRouter()
-
-    private var hasRegisteredDoorLocks: Bool {
-        doorLocks.isEmpty == false
-    }
 
     var body: some View {
         @Bindable var router = router
 
         TabView(selection: $router.selectedTab) {
-            if hasRegisteredDoorLocks {
-                NavigationStack {
-                    ScanTabRootView()
-                }
-                .tabItem { Label("scan", systemImage: "camera.fill") }
-                .tag(AppRouter.Tab.scan)
+            NavigationStack {
+                ScanTabRootView()
             }
+            .tabItem { Label("scan", systemImage: "camera.fill") }
+            .tag(AppRouter.Tab.scan)
 
             // 잠금장치 목록 (Figma: 자물쇠 + password)
             NavigationStack {
@@ -53,17 +46,12 @@ struct MainTabView: View {
             RegistrationFlowView()
                 .environment(router)
         }
-        .onChange(of: hasRegisteredDoorLocks) { _, hasLocks in
-            if hasLocks == false {
-                router.selectedTab = .password
-            }
-        }
     }
 
     private func moveToPendingTabAfterRegistrationDismiss() {
         guard let pendingTab = router.pendingTabAfterRegistrationDismiss else { return }
         router.pendingTabAfterRegistrationDismiss = nil
-        router.selectedTab = pendingTab == .scan && doorLocks.isEmpty ? .password : pendingTab
+        router.selectedTab = pendingTab
     }
 }
 
