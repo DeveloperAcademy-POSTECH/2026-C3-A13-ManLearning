@@ -18,7 +18,7 @@ final class YOLODetector {
     private let maxDetections = 25
     private let iouThreshold: Float = 0.45
 
-    init(modelName: String = "YOLO11n_Custom", labelsName: String = "custom_class_names") throws {
+    init(modelName: String = "yolov8n_oiv7", labelsName: String = "class_names") throws {
         let configuration = MLModelConfiguration()
         configuration.computeUnits = .all
 
