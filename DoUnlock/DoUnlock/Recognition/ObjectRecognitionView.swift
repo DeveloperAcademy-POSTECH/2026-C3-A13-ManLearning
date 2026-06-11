@@ -37,6 +37,7 @@ struct ObjectRecognitionView: View {
     @State private var showSelectionSheet = false
     @State private var authenticatedLock: DoorLock? = nil
     @State private var isSingleMatchAuth = false
+    @State private var isEmptyMessageVisible = false
 
     private let comparisonInterval: TimeInterval = 1
 
@@ -64,11 +65,15 @@ struct ObjectRecognitionView: View {
 
             // 비밀번호 오버레이가 없을 때만 가이드 박스와 상태 표시
             if authenticatedLock == nil {
-                CameraGuideOverlay(status: $cameraStatus)
-                    .ignoresSafeArea()
+                if doorLocks.isEmpty {
+                    emptyRecognitionMessage
+                } else {
+                    CameraGuideOverlay(status: $cameraStatus)
+                        .ignoresSafeArea()
 
-                similarityStatusView
-                    .padding(.bottom, 32)
+                    similarityStatusView
+                        .padding(.bottom, 32)
+                }
             }
 
             // Face ID 성공 후 비밀번호 오버레이
@@ -127,6 +132,35 @@ struct ObjectRecognitionView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
         .background(.black.opacity(0.48), in: Capsule())
+    }
+
+    private var emptyRecognitionMessage: some View {
+        GeometryReader { geometry in
+            Text("먼저 잠금장치를 등록해주세요")
+                .font(.custom("Pretendard-Medium", size: 18))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .frame(width: geometry.size.width * 0.63)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .opacity(isEmptyMessageVisible ? 1 : 0.35)
+                .position(
+                    x: geometry.size.width / 2,
+                    y: geometry.size.height / 2
+                )
+                .onAppear {
+                    isEmptyMessageVisible = true
+                }
+                .onDisappear {
+                    isEmptyMessageVisible = false
+                }
+                .animation(
+                    .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
+                    value: isEmptyMessageVisible
+                )
+        }
+        .allowsHitTesting(false)
     }
 
     private var similarityReferences: [ObjectSimilarityReference] {
