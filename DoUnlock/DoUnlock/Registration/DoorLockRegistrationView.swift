@@ -26,7 +26,7 @@ struct DoorLockRegistrationView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
-    private let categories = ["도어락", "자전거", "캐리어", "기타"]
+    private let categories = ["잠금장치", "자전거", "캐리어", "기타"]
 
     init(mode: Mode = .create, cropimageData: Data = Data(), fullimageData: Data = Data()) {
         self.mode = mode
@@ -34,7 +34,7 @@ struct DoorLockRegistrationView: View {
         self.fullimageData = fullimageData
         switch mode {
         case .create:
-            _category = State(initialValue: "도어락")
+            _category = State(initialValue: "잠금장치")
             _name = State(initialValue: "")
             _password = State(initialValue: "")
         case .edit(let lock):
@@ -46,8 +46,8 @@ struct DoorLockRegistrationView: View {
 
     private var title: String {
         switch mode {
-        case .create: return "도어락 정보 등록"
-        case .edit:   return "도어락 정보 수정"
+        case .create: return "잠금장치 정보 등록"
+        case .edit:   return "잠금장치 정보 수정"
         }
     }
 
@@ -93,7 +93,7 @@ struct DoorLockRegistrationView: View {
         }
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
-        // ==== 공유 시트: 현재 도어락 + nearbyVM 전달
+        // ==== 공유 시트: 현재 잠금장치 + nearbyVM 전달
         .sheet(isPresented: $showShareSheet) {
             DeviceShareSheet(lock: lockForSharing)
                 .environmentObject(nearbyVM)
@@ -147,7 +147,7 @@ struct DoorLockRegistrationView: View {
                 circleNavButton { Image(systemName: "chevron.left") }
             }
             Spacer()
-            // 공유는 저장된 도어락(수정 모드)에서만. create 모드(미저장)에선 숨김.
+            // 공유는 저장된 잠금장치(수정 모드)에서만. create 모드(미저장)에선 숨김.
             if case .edit = mode {
                 Button { showShareSheet = true } label: {
                     circleNavButton { Image(systemName: "square.and.arrow.up") }
@@ -156,7 +156,7 @@ struct DoorLockRegistrationView: View {
         }
     }
     
-    /// 표시할 사진. create는 넘겨받은 촬영 이미지, edit는 저장된 도어락 이미지.
+    /// 표시할 사진. create는 넘겨받은 촬영 이미지, edit는 저장된 잠금장치 이미지.
     private var displayImageData: Data {
         switch mode {
         case .create:          return cropimageData

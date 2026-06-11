@@ -50,7 +50,7 @@ struct PermissionSetupView: View {
                         .textStyle(.heading)
                         .foregroundStyle(Color.textPrimary)
 
-                    Text("DoUnlock은 본인 인증을 통해 등록된 집 앞에서만\n도어락 비밀번호를 보여드려요.")
+                    Text("DoUnlock은 본인 인증을 통해 등록된 집 앞에서만\n잠금장치 비밀번호를 보여드려요.")
                         .textStyle(.bodyText)
                         .foregroundStyle(Color.textMuted)
                 }
@@ -63,7 +63,7 @@ struct PermissionSetupView: View {
                     PermissionCardView(
                         systemImage: "camera",
                         title: "카메라 접근 허용",
-                        subtitle: "도어락을 확인하기 위해 필요해요"
+                        subtitle: "잠금장치을 확인하기 위해 필요해요"
                     )
 
                     PermissionCardView(

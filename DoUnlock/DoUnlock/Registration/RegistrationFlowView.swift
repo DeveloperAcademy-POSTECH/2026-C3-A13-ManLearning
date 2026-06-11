@@ -2,7 +2,7 @@
 //  RegistrationFlowView.swift
 //  DoUnlock
 //
-//  새 도어락 등록 플로우의 단일 NavigationStack 루트.
+//  새 잠금장치 등록 플로우의 단일 NavigationStack 루트.
 //
 
 import SwiftUI
