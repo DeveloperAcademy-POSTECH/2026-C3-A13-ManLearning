@@ -68,7 +68,7 @@ final class ObjectSimilarity: @unchecked Sendable {
         let values: [Float]
     }
 
-    private let modelName = "DINOv3TinyFeatureExtractor"
+    private let modelName = "DINOv3SmallFeatureExtractor"
     private let inputName = "image"
     private let outputName = "embedding"
     private let inputSize = 224
