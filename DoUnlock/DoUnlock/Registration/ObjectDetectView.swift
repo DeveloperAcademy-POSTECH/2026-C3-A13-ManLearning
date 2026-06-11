@@ -32,10 +32,11 @@ final class DetectionViewModel: ObservableObject {
     private var errorTimer: Timer?
 
     init() {
-        detector = try? YOLODetector(
+        // 프리로드가 실패했거나 아직 끝나지 않은 경우(예: 스플래시 최소 시간 전에 진입), 직접 로드해 폴백
+        detector = ModelPreloader.shared.detector ?? (try? YOLODetector(
             modelName: "custom_yolov8n_doorlock_suitcase",
             labelsName: "custom_class_names"
-        )
+        ))
         scheduleErrorTimeout()
     }
 
