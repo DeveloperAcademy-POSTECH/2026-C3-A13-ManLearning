@@ -2,8 +2,8 @@
 //  ShareReceiveSheet.swift
 //  DoUnlock
 //
-//  도어락 정보를 "받는" 쪽 iPhone에서 올라오는 수락 시트. (Figma 544:2697)
-//  발신 기기명 + 안내문 + 공유될 도어락 카드 + [나중에 / 공유 허용] 버튼.
+//  잠금장치 정보를 "받는" 쪽 iPhone에서 올라오는 수락 시트. (Figma 544:2697)
+//  발신 기기명 + 안내문 + 공유될 잠금장치 카드 + [나중에 / 공유 허용] 버튼.
 //
 //  NearbyViewModel 을 통해 실제 수신 데이터를 표시합니다.
 //
@@ -13,14 +13,14 @@ import SwiftUI
 struct ShareReceiveSheet: View {
     // ==== Nearby ViewModel (수신 데이터 + 수락/거절 처리)
     @ObservedObject var nearbyVM: NearbyViewModel
-    // ==== 수락 시 도어락을 목록에 추가하는 콜백 (DoorLockDraft 제거 → NearbyPacket)
+    // ==== 수락 시 잠금장치을 목록에 추가하는 콜백 (DoorLockDraft 제거 → NearbyPacket)
     var onAccept: (NearbyPacket) -> Void
     @Environment(\.dismiss) private var dismiss
 
     // ==== 실제 수신 데이터 기반 computed 프로퍼티
     private var senderName: String   { nearbyVM.receivedFrom.isEmpty ? "알 수 없음" : nearbyVM.receivedFrom }
-    private var lockName:    String   { nearbyVM.receivedLock?.name     ?? "도어락" }
-    private var lockCategory: String  { nearbyVM.receivedLock?.category ?? "도어락" }
+    private var lockName:    String   { nearbyVM.receivedLock?.name     ?? "잠금장치" }
+    private var lockCategory: String  { nearbyVM.receivedLock?.category ?? "잠금장치" }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,7 +47,7 @@ struct ShareReceiveSheet: View {
                 Text(senderName)
                     .textStyle(.completionTitle)
                     .foregroundStyle(Color.textPrimary)
-                Text("도어락 정보를 공유하려 합니다")
+                Text("잠금장치 정보를 공유하려 합니다")
                     .textStyle(.subHeading)
                     .foregroundStyle(Color.textMuted)
             }
@@ -68,7 +68,7 @@ struct ShareReceiveSheet: View {
         }
     }
 
-    /// 공유될 도어락 카드. RegistrationCompleteView.registeredLockCard와 같은 구성(목업 값).
+    /// 공유될 잠금장치 카드. RegistrationCompleteView.registeredLockCard와 같은 구성(목업 값).
     private var lockCard: some View {
         HStack(spacing: 20) {
             RoundedRectangle(cornerRadius: 18)
@@ -81,7 +81,7 @@ struct ShareReceiveSheet: View {
                 }
 
             VStack(alignment: .leading, spacing: 2) {
-                // ==== 실제 수신된 도어락 이름/카테고리 표시
+                // ==== 실제 수신된 잠금장치 이름/카테고리 표시
                 Text(lockName)
                     .textStyle(.cardTitle)
                     .foregroundStyle(Color.textPrimary)
@@ -109,7 +109,7 @@ struct ShareReceiveSheet: View {
             }
 
             Button {
-                // ==== 수락: 도어락 반환 → 목록에 추가 → 닫기
+                // ==== 수락: 잠금장치 반환 → 목록에 추가 → 닫기
                 if let lock = nearbyVM.acceptReceive() {
                     onAccept(lock)
                 }
@@ -135,6 +135,6 @@ struct ShareReceiveSheet: View {
     // ==== 프리뷰: 목업 NearbyPacket 사용 (DoorLockDraft 제거)
     let vm = NearbyViewModel()
     vm.receivedFrom = "iPhone Air"
-    vm.receivedLock = NearbyPacket(category: "도어락", name: "우리집", password: "1234")
+    vm.receivedLock = NearbyPacket(category: "잠금장치", name: "우리집", password: "1234")
     return ShareReceiveSheet(nearbyVM: vm, onAccept: { _ in })
 }

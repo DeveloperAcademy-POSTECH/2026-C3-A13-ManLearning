@@ -135,25 +135,39 @@ final class DetectionViewModel: ObservableObject {
 }
 
 struct ObjectDetectView: View {
+    let isActive: Bool
+    let onCapture: (CaptureReviewData) -> Void
+    let onClose: () -> Void
+
     @StateObject private var viewModel = DetectionViewModel()
-    @Environment(AppRouter.self) private var router
     @State private var captureTriggered = false
-    @State private var reviewData: CaptureReviewData?
+
+    init(
+        isActive: Bool = true,
+        onCapture: @escaping (CaptureReviewData) -> Void = { _ in },
+        onClose: @escaping () -> Void = {}
+    ) {
+        self.isActive = isActive
+        self.onCapture = onCapture
+        self.onClose = onClose
+    }
 
     var body: some View {
         ZStack {
             CameraPreviewView(
-                isActive: reviewData == nil,
+                isActive: isActive,
                 captureImageTrigger: captureTriggered,
                 pixelHandler: { pixelBuffer, _ in
                     viewModel.process(pixelBuffer: pixelBuffer)
                 },
                 imageHandler: { fullImage, croppedImage in
                     DispatchQueue.main.async {
-                        reviewData = CaptureReviewData(
+                        let captureData = CaptureReviewData(
                             fullImage: fullImage,
                             croppedImage: croppedImage
                         )
+                        viewModel.reset()
+                        onCapture(captureData)
                     }
                 }
             )
@@ -161,6 +175,28 @@ struct ObjectDetectView: View {
 
             CameraGuideOverlay(status: $viewModel.guideStatus)
                 .ignoresSafeArea()
+
+            VStack {
+                HStack {
+                    Button {
+                        viewModel.reset()
+                        onClose()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 40, height: 40)
+                            .background(.black.opacity(0.35))
+                            .clipShape(Circle())
+                    }
+
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+
+                Spacer()
+            }
 
             VStack {
                 Spacer()
@@ -192,41 +228,12 @@ struct ObjectDetectView: View {
                             .clipShape(Capsule())
                     }
                     .padding(.horizontal, 16)
-                    .padding(.bottom, 34)
+                    .padding(.bottom, 18)
                 }
                 .transition(.opacity)
             }
         }
         .animation(.easeInOut(duration: 0.3), value: viewModel.guideStatus == .pass)
-        // 등록 완료 화면 "목록 확인하기" → cover를 닫고 목록(password) 탭으로 전환.
-        .onChange(of: router.finishCaptureFlowRequested) { _, requested in
-            guard requested else { return }
-            reviewData = nil
-            viewModel.reset()
-            router.selectedTab = .password
-            router.finishCaptureFlowRequested = false
-        }
-        // 등록 완료 화면 "바로 인식해보기" → cover를 닫고 scan 탭 인식 화면으로 전환.
-        .onChange(of: router.finishCaptureAndScanRequested) { _, requested in
-            guard requested else { return }
-            reviewData = nil
-            viewModel.reset()
-            router.forceRegisterMode = false
-            router.selectedTab = .scan
-            router.finishCaptureAndScanRequested = false
-        }
-        .fullScreenCover(item: $reviewData) { data in
-            NavigationStack {
-                CapturedImageReviewView(
-                    image: data.fullImage,
-                    croppedImage: data.croppedImage,
-                    onRetake: {
-                        reviewData = nil
-                        viewModel.reset()
-                    }
-                )
-            }
-        }
     }
 
     private var confidenceText: String {
@@ -237,5 +244,4 @@ struct ObjectDetectView: View {
 
 #Preview {
     ObjectDetectView()
-        .environment(AppRouter())
 }

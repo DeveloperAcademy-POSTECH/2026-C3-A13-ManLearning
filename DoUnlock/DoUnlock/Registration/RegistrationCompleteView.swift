@@ -50,7 +50,7 @@ struct RegistrationCompleteView: View {
     private var textAndCard: some View {
         VStack(spacing: 28) {
             VStack(spacing: 12) {
-                Text("도어락 등록 완료")
+                Text("잠금장치 등록 완료")
                     .textStyle(.completionTitle)
                     .foregroundStyle(Color.textPrimary)
                     .multilineTextAlignment(.center)
@@ -76,11 +76,19 @@ struct RegistrationCompleteView: View {
                     )
                 )
                 .frame(width: 44, height: 55)
-                .overlay(
-                    Image(systemName: "lock.fill")
-                        .foregroundStyle(.white)
-                        .font(.system(size: 15))
-                )
+                .overlay {
+                    if let uiImage = UIImage(data: imageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 44, height: 55)
+                            .clipShape(RoundedRectangle(cornerRadius: 18))
+                    } else {
+                        Image(systemName: "lock.fill")
+                            .foregroundStyle(.white)
+                            .font(.system(size: 15))
+                    }
+                }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(name)
@@ -110,7 +118,7 @@ struct RegistrationCompleteView: View {
     private var actionButtons: some View {
         VStack(spacing: 8) {
             Button {
-                // 촬영 cover를 닫고 목록(password) 탭으로 전환. cover는 ObjectDetectView가 소유하므로 신호로 위임.
+                // 등록 플로우를 닫고 목록(password) 탭으로 전환하도록 상위 flow에 신호를 보낸다.
                 router.finishCaptureFlowRequested = true
             } label: {
                 Text("등록된 목록 확인하기")
@@ -139,7 +147,7 @@ struct RegistrationCompleteView: View {
 
 #Preview {
     NavigationStack {
-        RegistrationCompleteView(name: "우리집", category: "도어락", imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!)
+        RegistrationCompleteView(name: "우리집", category: "잠금장치", imageData: UIImage(named: "photo")!.jpegData(compressionQuality: 0.8)!)
     }
     .environment(AppRouter())
 }

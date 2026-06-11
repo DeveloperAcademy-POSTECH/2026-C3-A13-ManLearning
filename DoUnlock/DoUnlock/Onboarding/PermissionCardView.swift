@@ -43,7 +43,7 @@ struct PermissionCardView: View {
         PermissionCardView(
             systemImage: "camera",
             title: "카메라 접근 허용",
-            subtitle: "도어락을 확인하기 위해 필요해요"
+            subtitle: "잠금장치을 확인하기 위해 필요해요"
         )
         PermissionCardView(
             systemImage: "faceid",

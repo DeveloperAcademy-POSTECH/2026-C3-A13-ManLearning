@@ -7,7 +7,7 @@ private let kServiceType = "dounlock-share"   // 15자 이하, [a-z0-9\-] 만 �
 
 // ========================= 콜백 타입 (C 함수 포인터 대체) =========================
 
-typealias NearbyPeerDiscoveredCallback  = (_ peer: MCPeerID) -> Void
+typealias NearbyPeerDiscoveredCallback  = (_ peer: MCPeerID, _ vid: String?) -> Void
 typealias NearbyPeerLostCallback        = (_ peer: MCPeerID) -> Void
 typealias NearbyPeerConnectedCallback   = (_ peer: MCPeerID) -> Void
 typealias NearbyDataReceivedCallback    = (_ data: Data, _ from: MCPeerID) -> Void
@@ -35,7 +35,7 @@ final class NearbyManager: NSObject {
     // ========================= init =========================
 
     override init() {
-        localPeerID = MCPeerID(displayName: UIDevice.current.name)
+        localPeerID = NearbyManager.cachedPeerID()
         session     = MCSession(peer: localPeerID,
                                 securityIdentity: nil,
                                 encryptionPreference: .required)
@@ -43,9 +43,31 @@ final class NearbyManager: NSObject {
         session.delegate = self
     }
 
+    /// 기기당 하나의 MCPeerID를 UserDefaults에 보관해 재사용.
+    /// MCPeerID는 표시 이름이 같아도 생성 때마다 내부 식별자가 달라, 인스턴스/앱 재실행마다 새로 만들면
+    /// 같은 기기가 여러 peerID로 광고돼 탐색 목록에 중복으로 뜬다. 고정해서 근본 차단.
+    private static func cachedPeerID() -> MCPeerID {
+        let name = UIDevice.current.name
+        let d = UserDefaults.standard
+        let idKey = "NearbyManager.peerID", nameKey = "NearbyManager.peerID.name"
+        // 이름이 동일할 때만 캐시 재사용 (기기명 변경 시 갱신)
+        if d.string(forKey: nameKey) == name,
+           let data = d.data(forKey: idKey),
+           let peer = try? NSKeyedUnarchiver.unarchivedObject(ofClass: MCPeerID.self, from: data) {
+            return peer
+        }
+        let peer = MCPeerID(displayName: name)
+        if let data = try? NSKeyedArchiver.archivedData(withRootObject: peer, requiringSecureCoding: true) {
+            d.set(data, forKey: idKey)
+            d.set(name, forKey: nameKey)
+        }
+        return peer
+    }
+
     // ========================= Advertiser (수신측: 내 존재를 광고) =========================
 
     func startAdvertising() {
+        stopAdvertising()   // 기존 광고 정리 후 재시작 — 멈추지 않은 옛 광고 누수 방지
         let adv = MCNearbyServiceAdvertiser(peer: localPeerID,
                                             discoveryInfo: ["vid": vendorID],
                                             serviceType: kServiceType)
@@ -62,6 +84,7 @@ final class NearbyManager: NSObject {
     // ========================= Browser (발신측: 주변 기기 탐색) =========================
 
     func startBrowsing() {
+        stopBrowsing()   // 기존 탐색 정리 후 재시작 — 멈추지 않은 옛 탐색 누수 방지
         let br = MCNearbyServiceBrowser(peer: localPeerID,
                                         serviceType: kServiceType)
         br.delegate = self
@@ -165,7 +188,8 @@ extension NearbyManager: MCNearbyServiceBrowserDelegate {
         guard info?["vid"] != vendorID else { return }
         // 발견 즉시 초대 — 연결 성립 후 onPeerConnected 에서 데이터 전송
         browser.invitePeer(peerID, to: session, withContext: nil, timeout: 10)
-        DispatchQueue.main.async { self.onPeerDiscovered?(peerID) }
+        let vid = info?["vid"]
+        DispatchQueue.main.async { self.onPeerDiscovered?(peerID, vid) }
     }
 
     func browser(_ browser: MCNearbyServiceBrowser,
