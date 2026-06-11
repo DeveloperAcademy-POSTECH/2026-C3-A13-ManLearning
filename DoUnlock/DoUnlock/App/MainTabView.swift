@@ -23,18 +23,18 @@ struct MainTabView: View {
         @Bindable var router = router
 
         TabView(selection: $router.selectedTab) {
-            NavigationStack {
-                ScanTabRootView()
-            }
-            .tabItem { Label("scan", systemImage: "camera.fill") }
-            .tag(AppRouter.Tab.scan)
-
             // 잠금장치 목록 (Figma: 자물쇠 + password)
             NavigationStack {
                 DoorLockListView()
             }
             .tabItem { Label("password", systemImage: "lock.fill") }
             .tag(AppRouter.Tab.password)
+
+            NavigationStack {
+                ScanTabRootView()
+            }
+            .tabItem { Label("scan", systemImage: "camera.fill") }
+            .tag(AppRouter.Tab.scan)
         }
         .environment(router)
         .fullScreenCover(

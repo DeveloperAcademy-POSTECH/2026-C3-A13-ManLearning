@@ -34,6 +34,7 @@ struct ObjectRecognitionView: View {
     @State private var showSelectionSheet = false
     @State private var authenticatedLock: DoorLock? = nil
     @State private var isSingleMatchAuth = false
+    @State private var isEmptyMessageVisible = false
 
     private let comparisonInterval: TimeInterval = 1
 
@@ -131,10 +132,21 @@ struct ObjectRecognitionView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
                 .frame(width: geometry.size.width * 0.63)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 24))
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16))
+                .opacity(isEmptyMessageVisible ? 1 : 0.35)
                 .position(
                     x: geometry.size.width / 2,
                     y: geometry.size.height / 2
+                )
+                .onAppear {
+                    isEmptyMessageVisible = true
+                }
+                .onDisappear {
+                    isEmptyMessageVisible = false
+                }
+                .animation(
+                    .easeInOut(duration: 0.9).repeatForever(autoreverses: true),
+                    value: isEmptyMessageVisible
                 )
         }
         .allowsHitTesting(false)
