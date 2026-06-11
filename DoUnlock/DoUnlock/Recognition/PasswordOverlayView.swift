@@ -100,7 +100,7 @@ struct PasswordOverlayView: View {
     ZStack {
         Color.black.ignoresSafeArea()
         PasswordOverlayView(
-            lock: DoorLock(category: "도어락", name: "우리집", password: "1234", image: Data()),
+            lock: DoorLock(category: "잠금장치", name: "우리집", password: "1234", image: Data()),
             isSingleMatch: true,
             onDismiss: {}
         )

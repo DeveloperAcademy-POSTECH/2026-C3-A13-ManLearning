@@ -2,7 +2,7 @@
 //  DoorLockListView.swift
 //  DoUnlock
 //
-//  등록된 도어락 목록 화면. (Figma 43:3172)
+//  등록된 잠금장치 목록 화면. (Figma 43:3172)
 //
 
 import SwiftUI
@@ -14,7 +14,7 @@ struct DoorLockListView: View {
 
     // ==== Nearby ViewModel — 광고(수신측)와 수신 시트 표시를 담당
     @StateObject private var nearbyVM = NearbyViewModel()
-    // ==== 수신된 도어락을 SwiftData에 저장하기 위해 modelContext 필요
+    // ==== 수신된 잠금장치을 SwiftData에 저장하기 위해 modelContext 필요
     @Environment(\.modelContext) private var modelContext
     // 등록 버튼이 scan(카메라) 탭으로 전환하는 데 사용.
     @Environment(AppRouter.self) private var router
@@ -27,7 +27,7 @@ struct DoorLockListView: View {
             Color.screenBg.ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Text("등록된 도어락 목록")
+                Text("등록된 잠금장치 목록")
                     .textStyle(.navTitle)
                     .foregroundStyle(Color.textPrimary)
                     .padding(.top, 38)
@@ -70,7 +70,7 @@ struct DoorLockListView: View {
                     .padding(.bottom, 16)
             }
         }
-        // 화면 자체 헤더("등록된 도어락 목록")가 있으므로 NavigationStack 기본 바와 중복 방지.
+        // 화면 자체 헤더("등록된 잠금장치 목록")가 있으므로 NavigationStack 기본 바와 중복 방지.
         .toolbar(.hidden, for: .navigationBar)
         // ==== Nearby: 화면 진입 시 광고 시작 (수신측 역할)
         .onAppear   { nearbyVM.startAdvertising() }
@@ -83,7 +83,7 @@ struct DoorLockListView: View {
                 nearbyVM: nearbyVM,
                 onAccept: { packet in
                     // ==== NearbyPacket → DoorLock 변환 후 SwiftData에 저장 (DoorLockDraft 제거)
-                    let lock = DoorLock(category: packet.category, name: packet.name, password: packet.password, image: Data())
+                    let lock = DoorLock(category: packet.category, name: packet.name, password: packet.password, image: packet.image ?? Data())
                     modelContext.insert(lock)
                 }
             )
@@ -91,7 +91,7 @@ struct DoorLockListView: View {
             .presentationDragIndicator(.visible)
         }
         // ==== 스와이프 삭제 확인. lockToDelete != nil 이면 표시.
-        .alert("도어락 삭제", isPresented: Binding(
+        .alert("잠금장치 삭제", isPresented: Binding(
             get: { lockToDelete != nil },
             set: { if !$0 { lockToDelete = nil } }
         ), presenting: lockToDelete) { lock in
@@ -114,7 +114,7 @@ struct DoorLockListView: View {
             HStack(spacing: 8) {
                 Image(systemName: "plus")
                     .font(.system(size: 18, weight: .semibold))
-                Text("새 도어락 등록하기")
+                Text("새 잠금장치 등록하기")
                     .textStyle(.buttonLarge)
             }
             .foregroundStyle(Color.brandPrimary)
@@ -138,7 +138,7 @@ struct DoorLockListView: View {
         for: DoorLock.self,
         configurations: ModelConfiguration(isStoredInMemoryOnly: true)
     )
-    container.mainContext.insert(DoorLock(category: "도어락", name: "우리집", password: "1234", image: Data()))
+    container.mainContext.insert(DoorLock(category: "잠금장치", name: "우리집", password: "1234", image: Data()))
     container.mainContext.insert(DoorLock(category: "자전거", name: "본가", password: "5678", image: Data()))
 
     return NavigationStack {
