@@ -32,10 +32,7 @@ final class DetectionViewModel: ObservableObject {
     private var errorTimer: Timer?
 
     init() {
-        detector = try? YOLODetector(
-            modelName: "custom_yolov8n_doorlock_suitcase",
-            labelsName: "custom_class_names"
-        )
+        detector = ModelPreloader.shared.detector
         scheduleErrorTimeout()
     }
 

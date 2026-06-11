@@ -13,9 +13,19 @@ struct ContentView: View {
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     
     @State private var hasGrantedPermissions = false
+    @State private var isPreloading = true
 
     var body: some View {
-        if hasCompletedOnboarding {
+        if isPreloading {
+            // 모델/카메라 준비 동안 스플래시 노출 (최소 2초 보장)
+            SplashView()
+                .task {
+                    async let preload: Void = ModelPreloader.shared.preload()
+                    async let minimumDelay: Void = waitMinimumSplashDuration()
+                    _ = await (preload, minimumDelay)
+                    isPreloading = false
+                }
+        } else if hasCompletedOnboarding {
             // 온보딩 완료 후(또는 재실행): 메인 탭바 — 기본 scan(카메라) 탭
             MainTabView()
         } else if !hasGrantedPermissions {
@@ -30,6 +40,10 @@ struct ContentView: View {
         }
     }
     
+    private func waitMinimumSplashDuration() async {
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+    }
+
     private func requestPermissions() {
         AVCaptureDevice.requestAccess(for: .video) { cameraGranted in
             guard cameraGranted else { return }

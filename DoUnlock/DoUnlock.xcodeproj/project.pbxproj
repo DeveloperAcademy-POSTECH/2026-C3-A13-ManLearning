@@ -11,7 +11,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		36C063A22FD945D800A8451E /* DoUnlock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DoUnlock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		937DCF5B2FD57491009B91CE /* MultipeerConnectivity.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultipeerConnectivity.framework; path = System/Library/Frameworks/MultipeerConnectivity.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -61,6 +61,7 @@
 			children = (
 				CBCAAFD12FCD53B7008EB235 /* DoUnlock */,
 				937DCF5A2FD57491009B91CE /* Frameworks */,
+				36C063A22FD945D800A8451E /* DoUnlock.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -86,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = DoUnlock;
-			productReference = CBCAAF452FC8ABB9008EB235 /* DoUnlock.app */;
+			productReference = 36C063A22FD945D800A8451E /* DoUnlock.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -281,7 +282,6 @@
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "주변 기기와 도어락 정보를 공유하기 위해 근거리 네트워크 접근이 필요해요";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -326,7 +326,6 @@
 				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "주변 기기와 도어락 정보를 공유하기 위해 근거리 네트워크 접근이 필요해요";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
